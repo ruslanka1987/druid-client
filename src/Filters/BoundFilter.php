@@ -46,7 +46,7 @@ class BoundFilter implements FilterInterface
         }
 
         $this->dimension          = $dimension;
-        $this->operator           = is_string($operator) ? BoundOperator::from($operator) : $operator;
+        $this->operator           = $operator;
         $this->value              = $value;
         $this->ordering           = $ordering ?? (is_numeric($value) ? SortingOrder::NUMERIC : SortingOrder::LEXICOGRAPHIC);
     }

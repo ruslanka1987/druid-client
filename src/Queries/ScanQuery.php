@@ -156,7 +156,7 @@ class ScanQuery implements QueryInterface
      */
     public function setResultFormat($resultFormat): void
     {
-        $this->resultFormat = is_string($resultFormat) ? ScanQueryResultFormat::from(strtolower($resultFormat)) : $resultFormat;
+        $this->resultFormat = $resultFormat;
     }
 
     /**
