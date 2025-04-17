@@ -11,17 +11,18 @@ use Level23\Druid\Context\TaskContext;
 use Level23\Druid\Context\ContextInterface;
 use Level23\Druid\Context\TopNQueryContext;
 use Level23\Druid\Context\ScanQueryContext;
-use Level23\Druid\Context\GroupByV2QueryContext;
-use Level23\Druid\Context\GroupByV1QueryContext;
+use Level23\Druid\Context\GroupByQueryContext;
 use Level23\Druid\Context\TimeSeriesQueryContext;
 
 class ContextTest extends TestCase
 {
-    public function dataProvider(): array
+    /**
+     * @return array<array<array<string,string>|string>>
+     */
+    public static function dataProvider(): array
     {
         return [
-            [GroupByV1QueryContext::class, ['groupByStrategy' => 'v1']],
-            [GroupByV2QueryContext::class, ['groupByStrategy' => 'v2']],
+            [GroupByQueryContext::class, ['groupByStrategy' => 'v2']],
             [TopNQueryContext::class],
             [TimeSeriesQueryContext::class],
             [TaskContext::class],
@@ -32,8 +33,8 @@ class ContextTest extends TestCase
     /**
      * @dataProvider dataProvider
      *
-     * @param string $class
-     * @param array  $extra
+     * @param string               $class
+     * @param array<string,string> $extra
      *
      * @throws \ReflectionException
      * @throws \Exception
@@ -47,7 +48,7 @@ class ContextTest extends TestCase
         $properties = [];
 
         foreach ($methods as $method) {
-            if (substr($method, 0, 3) != 'set') {
+            if (!str_starts_with($method, 'set')) {
                 continue;
             }
 
@@ -94,17 +95,9 @@ class ContextTest extends TestCase
         }
     }
 
-    public function testSettingValueUsingConstructor(): void
-    {
-        $context = new GroupByV2QueryContext(['timeout' => 6271]);
-
-        $response = $context->toArray();
-        $this->assertEquals(6271, $response['timeout']);
-    }
-
     public function testNonExistingProperty(): void
     {
-        $context = new GroupByV2QueryContext(['something' => 1]);
+        $context = new GroupByQueryContext(['something' => 1]);
 
         $properties = $context->toArray();
 
@@ -116,10 +109,13 @@ class ContextTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid value');
-        new GroupByV2QueryContext(['priority' => ['oops']]);
+
+        /** @noinspection PhpParamsInspection */
+        // @phpstan-ignore-next-line
+        new GroupByQueryContext(['priority' => ['oops']]);
     }
 
-    protected function getRandomWord()
+    protected function getRandomWord(): string
     {
         $characters   = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $randomString = '';

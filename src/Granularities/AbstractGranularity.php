@@ -8,31 +8,22 @@ use Level23\Druid\Collections\IntervalCollection;
 
 abstract class AbstractGranularity
 {
-    /**
-     * @var string
-     */
-    protected $queryGranularity;
+    protected Granularity $queryGranularity;
 
-    /**
-     * @var bool
-     */
-    protected $rollup;
+    protected bool $rollup;
 
-    /**
-     * @var IntervalCollection
-     */
-    protected $intervals;
+    protected IntervalCollection $intervals;
 
     /**
      * UniformGranularity constructor.
      *
-     * @param string             $queryGranularity
+     * @param string|Granularity $queryGranularity
      * @param bool               $rollup
      * @param IntervalCollection $intervals
      */
-    public function __construct(string $queryGranularity, bool $rollup, IntervalCollection $intervals)
+    public function __construct(string|Granularity $queryGranularity, bool $rollup, IntervalCollection $intervals)
     {
-        $this->queryGranularity = Granularity::validate($queryGranularity);
+        $this->queryGranularity = is_string($queryGranularity) ? Granularity::from(strtolower($queryGranularity)) : $queryGranularity;
         $this->rollup           = $rollup;
         $this->intervals        = $intervals;
     }

@@ -12,14 +12,14 @@ use Level23\Druid\Types\OrderByDirection;
 trait HasLimit
 {
     /**
-     * @var \Level23\Druid\Limits\LimitInterface|null
+     * @var \Level23\Druid\Limits\Limit|null
      */
-    protected $limit;
+    protected ?Limit $limit = null;
 
     /**
-     * @var string|null
+     * @var OrderByDirection|null
      */
-    protected $direction;
+    protected ?OrderByDirection $direction = null;
 
     /**
      * We can only order by fields if there is a limit specified (....., I know... ).
@@ -28,7 +28,7 @@ trait HasLimit
      *
      * @var int
      */
-    public static $DEFAULT_MAX_LIMIT = 999999;
+    public static int $DEFAULT_MAX_LIMIT = 999999;
 
     /**
      * Limit out result by N records.
@@ -39,7 +39,7 @@ trait HasLimit
      *
      * @return $this
      */
-    public function limit(int $limit, int $offset = null)
+    public function limit(int $limit, ?int $offset = null): self
     {
         if ($this->limit instanceof LimitInterface) {
             $this->limit->setLimit($limit);
@@ -58,17 +58,17 @@ trait HasLimit
      * Sort the result. This only applies for GroupBy and TopN Queries.
      * You should use `orderByDirection()` for TimeSeries, Select and Scan Queries.
      *
-     * @param string $dimensionOrMetric The dimension or metric where you want to order by.
-     * @param string $direction         The direction of your order. Default is "asc".
-     * @param string $sortingOrder      The algorithm used to order the result.
+     * @param string                  $dimensionOrMetric The dimension or metric where you want to order by.
+     * @param string|OrderByDirection $direction         The direction of your order. Default is "asc".
+     * @param string|SortingOrder     $sortingOrder      The algorithm used to order the result.
      *
      * @return $this
      */
     public function orderBy(
         string $dimensionOrMetric,
-        string $direction = OrderByDirection::ASC,
-        string $sortingOrder = SortingOrder::LEXICOGRAPHIC
-    ) {
+        string|OrderByDirection $direction = OrderByDirection::ASC,
+        string|SortingOrder $sortingOrder = SortingOrder::LEXICOGRAPHIC
+    ): self {
         $order = new OrderBy($dimensionOrMetric, $direction, $sortingOrder);
 
         if (!$this->limit) {
@@ -84,13 +84,13 @@ trait HasLimit
      * In which order should we return the result.
      * This only applies to TimeSeries, Select and Scan Queries. Use `orderBy()` For GroupBy and TopN Queries.
      *
-     * @param string $direction The direction of your order.
+     * @param string|OrderByDirection $direction The direction of your order.
      *
      * @return $this
      */
-    public function orderByDirection(string $direction = OrderByDirection::DESC)
+    public function orderByDirection(string|OrderByDirection $direction = OrderByDirection::DESC): self
     {
-        $this->direction = OrderByDirection::validate($direction);
+        $this->direction = is_string($direction) ? OrderByDirection::make($direction) : $direction;
 
         return $this;
     }

@@ -8,17 +8,23 @@ use Countable;
 use ArrayAccess;
 use ArrayIterator;
 use IteratorAggregate;
+use ReturnTypeWillChange;
 use InvalidArgumentException;
 
+/**
+ * @template T
+ * @implements ArrayAccess<int, T>
+ * @implements IteratorAggregate<int, T>
+ */
 abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countable
 {
     /**
-     * @var array
+     * @var array<int, T>
      */
-    protected $items;
+    protected array $items;
 
     /**
-     * @return \ArrayIterator
+     * @return \ArrayIterator<int, T>
      */
     public function getIterator(): ArrayIterator
     {
@@ -28,9 +34,9 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
     /**
      * Add an item to our collection.
      *
-     * @param mixed ...$item
+     * @param T ...$item
      */
-    public function add(...$item)
+    public function add(...$item): void
     {
         $type = $this->getType();
 
@@ -46,7 +52,7 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
     /**
      * Return an array representation of our items
      *
-     * @return array
+     * @return array<int, int|string|array<mixed>>
      */
     abstract public function toArray(): array;
 
@@ -58,21 +64,21 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
     abstract public function getType(): string;
 
     /**
-     * Whether a offset exists
+     * Whether an offset exists
      *
      * @link  https://php.net/manual/en/arrayaccess.offsetexists.php
      *
-     * @param mixed $offset <p>
+     * @param int $offset   <p>
      *                      An offset to check for.
      *                      </p>
      *
      * @return boolean true on success or false on failure.
      * </p>
      * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
+     * The return value will be cast to boolean if non-boolean was returned.
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->items[$offset]);
     }
@@ -82,16 +88,17 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
      *
      * @link  https://php.net/manual/en/arrayaccess.offsetget.php
      *
-     * @param mixed $offset <p>
+     * @param int $offset   <p>
      *                      The offset to retrieve.
      *                      </p>
      *
-     * @return mixed Can return all value types.
+     * @return null|T
      * @since 5.0.0
      */
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
-        return isset($this->items[$offset]) ? $this->items[$offset] : null;
+        return $this->items[$offset] ?? null;
     }
 
     /**
@@ -99,17 +106,18 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
      *
      * @link  https://php.net/manual/en/arrayaccess.offsetset.php
      *
-     * @param mixed $offset <p>
-     *                      The offset to assign the value to.
-     *                      </p>
-     * @param mixed $value  <p>
-     *                      The value to set.
-     *                      </p>
+     * @param int|null $offset <p>
+     *                         The offset to assign the value to.
+     *                         </p>
+     * @param T        $value  <p>
+     *                         The value to set.
+     *                         </p>
      *
      * @return void
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    #[ReturnTypeWillChange]
+    public function offsetSet($offset, $value): void
     {
         $type = $this->getType();
         if (!$value instanceof $type) {
@@ -128,14 +136,15 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
      *
      * @link  https://php.net/manual/en/arrayaccess.offsetunset.php
      *
-     * @param mixed $offset <p>
+     * @param int $offset   <p>
      *                      The offset to unset.
      *                      </p>
      *
      * @return void
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    #[ReturnTypeWillChange]
+    public function offsetUnset($offset): void
     {
         unset($this->items[$offset]);
     }
@@ -150,7 +159,7 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
      * The return value is cast to an integer.
      * @since 5.1.0
      */
-    public function count()
+    public function count(): int
     {
         return count($this->items);
     }

@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Filters;
 
-use Level23\Druid\Extractions\ExtractionInterface;
-
 /**
  * Class LikeFilter
  *
@@ -15,25 +13,11 @@ use Level23\Druid\Extractions\ExtractionInterface;
  */
 class LikeFilter implements FilterInterface
 {
-    /**
-     * @var string
-     */
-    protected $dimension;
+    protected string $dimension;
 
-    /**
-     * @var string
-     */
-    protected $pattern;
+    protected string $pattern;
 
-    /**
-     * @var string
-     */
-    protected $escapeCharacter;
-
-    /**
-     * @var \Level23\Druid\Extractions\ExtractionInterface|null
-     */
-    protected $extractionFunction;
+    protected string $escapeCharacter;
 
     /**
      * LikeFilter constructor.
@@ -42,38 +26,29 @@ class LikeFilter implements FilterInterface
      * @param string                   $pattern                 LIKE pattern, such as "foo%" or "___bar".
      * @param string                   $escapeCharacter         An escape character that can be used to escape special
      *                                                          characters.
-     * @param ExtractionInterface|null $extractionFunction
      */
     public function __construct(
         string $dimension,
         string $pattern,
-        string $escapeCharacter = '\\',
-        ExtractionInterface $extractionFunction = null
+        string $escapeCharacter = '\\'
     ) {
-        $this->dimension          = $dimension;
-        $this->pattern            = $pattern;
-        $this->escapeCharacter    = $escapeCharacter;
-        $this->extractionFunction = $extractionFunction;
+        $this->dimension       = $dimension;
+        $this->pattern         = $pattern;
+        $this->escapeCharacter = $escapeCharacter;
     }
 
     /**
      * Return the filter as it can be used in the druid query.
      *
-     * @return array
+     * @return array<string,string|array<string,string|int|bool|array<mixed>>>
      */
     public function toArray(): array
     {
-        $result = [
+        return [
             'type'      => 'like',
             'dimension' => $this->dimension,
             'pattern'   => $this->pattern,
             'escape'    => $this->escapeCharacter,
         ];
-
-        if ($this->extractionFunction) {
-            $result['extractionFn'] = $this->extractionFunction->toArray();
-        }
-
-        return $result;
     }
 }

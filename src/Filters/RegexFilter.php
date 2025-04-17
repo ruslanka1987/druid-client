@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Filters;
 
-use Level23\Druid\Extractions\ExtractionInterface;
-
 /**
  * Class RegexFilter
  *
@@ -16,58 +14,37 @@ use Level23\Druid\Extractions\ExtractionInterface;
  */
 class RegexFilter implements FilterInterface
 {
-    /**
-     * @var string
-     */
-    protected $dimension;
+    protected string $dimension;
 
-    /**
-     * @var string
-     */
-    protected $pattern;
-
-    /**
-     * @var \Level23\Druid\Extractions\ExtractionInterface|null
-     */
-    protected $extractionFunction;
+    protected string $pattern;
 
     /**
      * RegexFilter constructor.
      *
-     * @param string                   $dimension
-     * @param string                   $pattern A Java regex pattern
-     *
-     * @param ExtractionInterface|null $extractionFunction
+     * @param string $dimension
+     * @param string $pattern A Java regex pattern
      *
      * @see http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html
      */
     public function __construct(
         string $dimension,
-        string $pattern,
-        ExtractionInterface $extractionFunction = null
+        string $pattern
     ) {
-        $this->pattern            = $pattern;
-        $this->dimension          = $dimension;
-        $this->extractionFunction = $extractionFunction;
+        $this->pattern   = $pattern;
+        $this->dimension = $dimension;
     }
 
     /**
      * Return the filter as it can be used in the druid query.
      *
-     * @return array
+     * @return array<string,string|array<string,string|int|bool|array<mixed>>>
      */
     public function toArray(): array
     {
-        $result = [
+        return [
             'type'      => 'regex',
             'dimension' => $this->dimension,
             'pattern'   => $this->pattern,
         ];
-
-        if ($this->extractionFunction) {
-            $result['extractionFn'] = $this->extractionFunction->toArray();
-        }
-
-        return $result;
     }
 }

@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Filters;
 
-use Level23\Druid\Extractions\ExtractionInterface;
-
 /**
  * Class JavascriptFilter
  *
@@ -17,55 +15,35 @@ use Level23\Druid\Extractions\ExtractionInterface;
  */
 class JavascriptFilter implements FilterInterface
 {
-    /**
-     * @var string
-     */
-    protected $dimension;
+    protected string $dimension;
 
-    /**
-     * @var string
-     */
-    protected $javascriptFunction;
-
-    /**
-     * @var \Level23\Druid\Extractions\ExtractionInterface|null
-     */
-    protected $extractionFunction;
+    protected string $javascriptFunction;
 
     /**
      * JavascriptFilter constructor.
      *
      * @param string                   $dimension
      * @param string                   $javascriptFunction
-     * @param ExtractionInterface|null $extractionFunction
      */
     public function __construct(
         string $dimension,
-        string $javascriptFunction,
-        ExtractionInterface $extractionFunction = null
+        string $javascriptFunction
     ) {
         $this->dimension          = $dimension;
         $this->javascriptFunction = $javascriptFunction;
-        $this->extractionFunction = $extractionFunction;
     }
 
     /**
      * Return the filter as it can be used in the druid query.
      *
-     * @return array
+     * @return array<string,string|array<string,string|int|bool|array<mixed>>>
      */
     public function toArray(): array
     {
-        $result = [
+        return [
             'type'      => 'javascript',
             'dimension' => $this->dimension,
             'function'  => $this->javascriptFunction,
         ];
-
-        if ($this->extractionFunction) {
-            $result['extractionFn'] = $this->extractionFunction->toArray();
-        }
-
-        return $result;
     }
 }

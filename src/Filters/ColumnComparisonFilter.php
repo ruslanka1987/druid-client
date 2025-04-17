@@ -15,26 +15,17 @@ use Level23\Druid\Dimensions\DimensionInterface;
  *
  * This is the equivalent of WHERE <dimension_a> = <dimension_b>.
  *
- * dimensions is list of DimensionSpecs, making it possible to apply an extraction function if needed.
+ * dimensions is list of DimensionSpecs
  *
  * @package Level23\Druid\Filters
  */
 class ColumnComparisonFilter implements FilterInterface
 {
-    /**
-     * @var DimensionInterface
-     */
-    protected $dimensionA;
+    protected DimensionInterface $dimensionA;
 
-    /**
-     * @var DimensionInterface
-     */
-    protected $dimensionB;
+    protected DimensionInterface $dimensionB;
 
-    /**
-     * @var string
-     */
-    protected $value;
+    protected string $value;
 
     /**
      * ColumnComparisonFilter constructor.
@@ -51,7 +42,7 @@ class ColumnComparisonFilter implements FilterInterface
     /**
      * Return the filter as it can be used in the druid query.
      *
-     * @return array
+     * @return array<string,string|array<array<string,string|array<mixed>>>>
      */
     public function toArray(): array
     {

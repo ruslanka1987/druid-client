@@ -10,14 +10,14 @@ class DoublesSketchAggregator implements AggregatorInterface
      *
      * @var string
      */
-    protected $metricName;
+    protected string $metricName;
 
     /**
      * A String for the output (result) name of the calculation.
      *
      * @var string
      */
-    protected $outputName;
+    protected string $outputName;
 
     /**
      * Parameter that determines the accuracy and size of the sketch. Higher k means higher accuracy but more space to
@@ -26,18 +26,18 @@ class DoublesSketchAggregator implements AggregatorInterface
      *
      * @var int|null
      */
-    protected $sizeAndAccuracy;
+    protected ?int $sizeAndAccuracy = null;
 
     /**
      * This parameter is a temporary solution to avoid a known issue. It may be removed in a future release after the
      * bug is fixed. This parameter defines the maximum number of items to store in each sketch. If a sketch reaches
-     * the limit, the query can throw IllegalStateException. To workaround this issue, increase the maximum stream
+     * the limit, the query can throw IllegalStateException. To work around this issue, increase the maximum stream
      * length. See accuracy information in the DataSketches documentation for how many bytes are required per stream
      * length.
      *
      * @var int|null
      */
-    protected $maxStreamLength;
+    protected ?int $maxStreamLength = null;
 
     /**
      * @param string   $metricName      A String for the name of the input field (can contain sketches or raw numeric
@@ -50,7 +50,7 @@ class DoublesSketchAggregator implements AggregatorInterface
      * @param int|null $maxStreamLength This parameter is a temporary solution to avoid a known issue. It may be
      *                                  removed in a future release after the bug is fixed. This parameter defines the
      *                                  maximum number of items to store in each sketch. If a sketch reaches the limit,
-     *                                  the query can throw IllegalStateException. To workaround this issue, increase
+     *                                  the query can throw IllegalStateException. To work around this issue, increase
      *                                  the maximum stream length. See accuracy information in the DataSketches
      *                                  documentation for how many bytes are required per stream length.
      *
@@ -68,6 +68,9 @@ class DoublesSketchAggregator implements AggregatorInterface
         $this->maxStreamLength = $maxStreamLength;
     }
 
+    /**
+     * @return array<string,string|int>
+     */
     public function toArray(): array
     {
         $result = [

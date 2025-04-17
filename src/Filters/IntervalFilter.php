@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Level23\Druid\Filters;
 
 use Level23\Druid\Interval\IntervalInterface;
-use Level23\Druid\Extractions\ExtractionInterface;
 
 /**
  * Class IntervalFilter
@@ -21,45 +20,32 @@ use Level23\Druid\Extractions\ExtractionInterface;
  */
 class IntervalFilter implements FilterInterface
 {
-    /**
-     * @var string
-     */
-    protected $dimension;
+    protected string $dimension;
 
     /**
      * @var array|\Level23\Druid\Interval\IntervalInterface[]
      */
-    protected $intervals;
-
-    /**
-     * @var \Level23\Druid\Extractions\ExtractionInterface|null
-     */
-    protected $extractionFunction;
+    protected array $intervals;
 
     /**
      * IntervalFilter constructor.
      *
      * @param string                    $dimension                 The dimension to filter on
-     * @param array|IntervalInterface[] $intervals                 A array containing Interval objects. This
+     * @param array|IntervalInterface[] $intervals                 An array containing Interval objects. This
      *                                                             defines the time ranges to filter on.
-     * @param ExtractionInterface|null  $extractionFunction        If an extraction function is used with this filter,
-     *                                                             the extraction function should output values that
-     *                                                             are parsable as long milliseconds.
      */
     public function __construct(
         string $dimension,
-        array $intervals,
-        ExtractionInterface $extractionFunction = null
+        array $intervals
     ) {
-        $this->intervals          = $intervals;
-        $this->dimension          = $dimension;
-        $this->extractionFunction = $extractionFunction;
+        $this->intervals = $intervals;
+        $this->dimension = $dimension;
     }
 
     /**
      * Return the filter as it can be used in the druid query.
      *
-     * @return array
+     * @return array<string,string|array<string>|array<string,string|int|bool|array<mixed>>>
      */
     public function toArray(): array
     {
@@ -68,16 +54,10 @@ class IntervalFilter implements FilterInterface
             $intervals[] = $interval->getInterval();
         }
 
-        $result = [
+        return [
             'type'      => 'interval',
             'dimension' => $this->dimension,
             'intervals' => $intervals,
         ];
-
-        if ($this->extractionFunction) {
-            $result['extractionFn'] = $this->extractionFunction->toArray();
-        }
-
-        return $result;
     }
 }

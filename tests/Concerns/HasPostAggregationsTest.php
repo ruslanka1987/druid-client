@@ -4,10 +4,13 @@ declare(strict_types=1);
 namespace Level23\Druid\Tests\Concerns;
 
 use Mockery;
+use Mockery\MockInterface;
 use InvalidArgumentException;
 use Level23\Druid\DruidClient;
 use Hamcrest\Core\IsInstanceOf;
+use Mockery\LegacyMockInterface;
 use Level23\Druid\Tests\TestCase;
+use Level23\Druid\Types\DataType;
 use Level23\Druid\Queries\QueryBuilder;
 use Level23\Druid\Dimensions\Dimension;
 use Level23\Druid\PostAggregations\CdfPostAggregator;
@@ -23,16 +26,14 @@ use Level23\Druid\PostAggregations\QuantilesPostAggregator;
 use Level23\Druid\PostAggregations\HistogramPostAggregator;
 use Level23\Druid\PostAggregations\ArithmeticPostAggregator;
 use Level23\Druid\PostAggregations\JavaScriptPostAggregator;
+use Level23\Druid\PostAggregations\ExpressionPostAggregator;
 use Level23\Druid\PostAggregations\FieldAccessPostAggregator;
 use Level23\Druid\PostAggregations\SketchSummaryPostAggregator;
 use Level23\Druid\PostAggregations\HyperUniqueCardinalityPostAggregator;
 
 class HasPostAggregationsTest extends TestCase
 {
-    /**
-     * @var \Level23\Druid\Queries\QueryBuilder|\Mockery\LegacyMockInterface|\Mockery\MockInterface
-     */
-    protected $builder;
+    protected QueryBuilder|MockInterface|LegacyMockInterface $builder;
 
     public function setUp(): void
     {
@@ -54,32 +55,30 @@ class HasPostAggregationsTest extends TestCase
             },
         ];
 
-        /** @noinspection PhpUndefinedMethodInspection */
         $response = $this->builder->shouldAllowMockingProtectedMethods()->buildFields($fields);
 
         $this->assertInstanceOf(PostAggregationCollection::class, $response);
 
-        if ($response instanceof PostAggregationCollection) {
-            $this->assertEquals([
-                [
-                    'type'      => 'fieldAccess',
-                    'name'      => 'field',
-                    'fieldName' => 'field',
-                ],
-                [
-                    'type'      => 'hyperUniqueCardinality',
-                    'name'      => 'myHyperUniqueCardinality',
-                    'fieldName' => 'myHyperUniqueField',
-                ],
-                [
-                    'type'  => 'constant',
-                    'name'  => 'pi',
-                    'value' => 3.14,
-                ],
+        $this->assertEquals([
+            [
+                'type'      => 'fieldAccess',
+                'name'      => 'field',
+                'fieldName' => 'field',
             ],
-                $response->toArray()
-            );
-        }
+            [
+                'type'      => 'hyperUniqueCardinality',
+                'name'      => 'myHyperUniqueCardinality',
+                'fieldName' => 'myHyperUniqueField',
+            ],
+            [
+                'type'  => 'constant',
+                'name'  => 'pi',
+                'value' => 3.14,
+            ],
+        ],
+            $response->toArray()
+        );
+
     }
 
     public function testBuildFieldsWithIncorrectType(): void
@@ -91,16 +90,16 @@ class HasPostAggregationsTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Incorrect field type given in postAggregation fields');
 
-        /** @noinspection PhpUndefinedMethodInspection */
+        /** @noinspection PhpParamsInspection */
         $this->builder->shouldAllowMockingProtectedMethods()->buildFields($fields);
     }
 
     /**
      * @param string $class
      *
-     * @return \Mockery\Generator\MockConfigurationBuilder|\Mockery\LegacyMockInterface|\Mockery\MockInterface
+     * @return LegacyMockInterface|MockInterface
      */
-    protected function getPostAggregationMock(string $class)
+    protected function getPostAggregationMock(string $class): LegacyMockInterface|MockInterface
     {
         $builder = new Mockery\Generator\MockConfigurationBuilder();
         $builder->setInstanceMock(true);
@@ -276,7 +275,7 @@ class HasPostAggregationsTest extends TestCase
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      *
-     * @param array|null $splitPoints
+     * @param int[]|null $splitPoints
      * @param int|null   $numBins
      */
     public function testHistogram(?array $splitPoints, ?int $numBins): void
@@ -364,12 +363,12 @@ class HasPostAggregationsTest extends TestCase
                     'fieldName' => 'sketchData',
                 ], $dimension->toArray());
                 $this->assertEquals('cdfResult', $outputName);
-                $this->assertEquals([1,2,3,4,5], $splitPoints);
+                $this->assertEquals([1, 2, 3, 4, 5], $splitPoints);
 
                 return true;
             });
 
-        $result = $this->builder->cdf('cdfResult', 'sketchData', [1,2,3,4,5]);
+        $result = $this->builder->cdf('cdfResult', 'sketchData', [1, 2, 3, 4, 5]);
 
         $this->assertEquals($this->builder, $result);
 
@@ -379,7 +378,7 @@ class HasPostAggregationsTest extends TestCase
         $this->builder->cdf('cdfResult', function (PostAggregationsBuilder $builder) {
             $builder->fieldAccess('sketchData');
             $builder->constant(3, 'Three');
-        }, [1,2,3,4,5]);
+        }, [1, 2, 3, 4, 5]);
     }
 
     /**
@@ -477,7 +476,7 @@ class HasPostAggregationsTest extends TestCase
         $this->getPostAggregationMock(GreatestPostAggregator::class)
             ->shouldReceive('__construct')
             ->once()
-            ->with('theGreatest', new IsInstanceOf(PostAggregationCollection::class), 'long');
+            ->with('theGreatest', new IsInstanceOf(PostAggregationCollection::class), DataType::LONG);
 
         $result = $this->builder->longGreatest('theGreatest', ['field1', 'field2']);
 
@@ -493,7 +492,7 @@ class HasPostAggregationsTest extends TestCase
         $this->getPostAggregationMock(GreatestPostAggregator::class)
             ->shouldReceive('__construct')
             ->once()
-            ->with('theGreatest', new IsInstanceOf(PostAggregationCollection::class), 'double');
+            ->with('theGreatest', new IsInstanceOf(PostAggregationCollection::class), DataType::DOUBLE);
 
         $result = $this->builder->doubleGreatest('theGreatest', ['field1', 'field2']);
 
@@ -509,7 +508,7 @@ class HasPostAggregationsTest extends TestCase
         $this->getPostAggregationMock(LeastPostAggregator::class)
             ->shouldReceive('__construct')
             ->once()
-            ->with('theLeast', new IsInstanceOf(PostAggregationCollection::class), 'long');
+            ->with('theLeast', new IsInstanceOf(PostAggregationCollection::class), DataType::LONG);
 
         $result = $this->builder->longLeast('theLeast', ['field1', 'field2']);
 
@@ -525,7 +524,7 @@ class HasPostAggregationsTest extends TestCase
         $this->getPostAggregationMock(LeastPostAggregator::class)
             ->shouldReceive('__construct')
             ->once()
-            ->with('theLeast', new IsInstanceOf(PostAggregationCollection::class), 'double');
+            ->with('theLeast', new IsInstanceOf(PostAggregationCollection::class), DataType::DOUBLE);
 
         $result = $this->builder->doubleLeast('theLeast', ['field1', 'field2']);
 
@@ -546,6 +545,32 @@ class HasPostAggregationsTest extends TestCase
             ->with('myJsResult', new IsInstanceOf(PostAggregationCollection::class), $jsFunction);
 
         $result = $this->builder->postJavascript('myJsResult', $jsFunction, ['field1', 'field2']);
+
+        $this->assertEquals($this->builder, $result);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testExpression(): void
+    {
+        $this->getPostAggregationMock(ExpressionPostAggregator::class)
+            ->shouldReceive('__construct')
+            ->once()
+            ->with(
+                'mySum',
+                'field1 + field2',
+                "numericFirst",
+                DataType::DOUBLE
+            );
+
+        $result = $this->builder->expression(
+            'mySum',
+            'field1 + field2',
+            "numericFirst",
+            DataType::DOUBLE
+        );
 
         $this->assertEquals($this->builder, $result);
     }

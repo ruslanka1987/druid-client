@@ -5,14 +5,16 @@ namespace Level23\Druid\Tasks;
 
 use InvalidArgumentException;
 use Level23\Druid\DruidClient;
+use Level23\Druid\Context\TaskContext;
 use Level23\Druid\Interval\IntervalInterface;
+use function json_encode;
 
 abstract class TaskBuilder
 {
     /**
      * @var DruidClient
      */
-    protected $client;
+    protected DruidClient $client;
 
     /**
      * The task ID. If this is not explicitly specified, Druid generates the task ID using task type,
@@ -20,7 +22,7 @@ abstract class TaskBuilder
      *
      * @var string|null
      */
-    protected $taskId = null;
+    protected ?string $taskId = null;
 
     /**
      * Check if the given interval is valid for the given dataSource.
@@ -29,6 +31,7 @@ abstract class TaskBuilder
      * @param \Level23\Druid\Interval\IntervalInterface $interval
      *
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     protected function validateInterval(string $dataSource, IntervalInterface $interval): void
     {
@@ -43,11 +46,11 @@ abstract class TaskBuilder
 
         foreach ($intervals as $dateStr) {
 
-            if (!$foundFrom && substr($dateStr, 0, strlen($fromStr)) === $fromStr) {
+            if (!$foundFrom && str_starts_with($dateStr, $fromStr)) {
                 $foundFrom = true;
             }
 
-            if (!$foundTo && substr($dateStr, -strlen($toStr)) === $toStr) {
+            if (!$foundTo && str_ends_with($dateStr, $toStr)) {
                 $foundTo = true;
             }
 
@@ -66,12 +69,12 @@ abstract class TaskBuilder
     /**
      * Execute the index task. We will return the task identifier.
      *
-     * @param \Level23\Druid\Context\TaskContext|array $context
+     * @param \Level23\Druid\Context\TaskContext|array<string,string|int|bool> $context
      *
      * @return string
-     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException|\GuzzleHttp\Exception\GuzzleException
      */
-    public function execute($context = []): string
+    public function execute(array|TaskContext $context = []): string
     {
         $task = $this->buildTask($context);
 
@@ -81,21 +84,17 @@ abstract class TaskBuilder
     /**
      * Return the task in Json format.
      *
-     * @param \Level23\Druid\Context\TaskContext|array $context
+     * @param \Level23\Druid\Context\TaskContext|array<string,string|int|bool> $context
      *
      * @return string
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \JsonException
      */
-    public function toJson($context = []): string
+    public function toJson(array|TaskContext $context = []): string
     {
         $task = $this->buildTask($context);
 
-        $json = \json_encode($task->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        if (\JSON_ERROR_NONE !== \json_last_error()) {
-            throw new InvalidArgumentException(
-                'json_encode error: ' . \json_last_error_msg()
-            );
-        }
+        $json = json_encode($task->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
         return (string)$json;
     }
@@ -103,12 +102,12 @@ abstract class TaskBuilder
     /**
      * Return the task as array
      *
-     * @param \Level23\Druid\Context\TaskContext|array $context
+     * @param \Level23\Druid\Context\TaskContext|array<string,string|int|bool> $context
      *
-     * @return array
+     * @return array<string,mixed>
      * @throws \Level23\Druid\Exceptions\QueryResponseException
      */
-    public function toArray($context = []): array
+    public function toArray(array|TaskContext $context = []): array
     {
         $task = $this->buildTask($context);
 
@@ -123,7 +122,7 @@ abstract class TaskBuilder
      *
      * @return $this
      */
-    public function taskId(string $taskId)
+    public function taskId(string $taskId): self
     {
         $this->taskId = $taskId;
 
@@ -131,10 +130,10 @@ abstract class TaskBuilder
     }
 
     /**
-     * @param \Level23\Druid\Context\TaskContext|array $context
+     * @param \Level23\Druid\Context\TaskContext|array<string,string|int|bool> $context
      *
      * @return \Level23\Druid\Tasks\TaskInterface
      * @throws \Level23\Druid\Exceptions\QueryResponseException
      */
-    abstract protected function buildTask($context): TaskInterface;
+    abstract protected function buildTask(array|TaskContext $context): TaskInterface;
 }

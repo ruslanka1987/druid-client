@@ -17,6 +17,7 @@ use Level23\Druid\Concerns\HasIntervals;
 use Level23\Druid\Limits\LimitInterface;
 use Level23\Druid\Concerns\HasDimensions;
 use Level23\Druid\Types\OrderByDirection;
+use Level23\Druid\Concerns\HasDataSource;
 use Level23\Druid\Responses\QueryResponse;
 use Level23\Druid\Concerns\HasAggregations;
 use Level23\Druid\Context\TopNQueryContext;
@@ -26,93 +27,86 @@ use Level23\Druid\Concerns\HasVirtualColumns;
 use Level23\Druid\Types\ScanQueryResultFormat;
 use Level23\Druid\Responses\ScanQueryResponse;
 use Level23\Druid\Responses\TopNQueryResponse;
+use Level23\Druid\DataSources\TableDataSource;
+use Level23\Druid\Context\GroupByQueryContext;
 use Level23\Druid\Concerns\HasPostAggregations;
-use Level23\Druid\Context\GroupByV1QueryContext;
-use Level23\Druid\Context\GroupByV2QueryContext;
 use Level23\Druid\Responses\SelectQueryResponse;
 use Level23\Druid\Responses\SearchQueryResponse;
 use Level23\Druid\Collections\IntervalCollection;
 use Level23\Druid\Context\TimeSeriesQueryContext;
 use Level23\Druid\Responses\GroupByQueryResponse;
 use Level23\Druid\Collections\DimensionCollection;
+use Level23\Druid\DataSources\DataSourceInterface;
 use Level23\Druid\Collections\AggregationCollection;
 use Level23\Druid\Responses\TimeSeriesQueryResponse;
 use Level23\Druid\Collections\VirtualColumnCollection;
 use Level23\Druid\Collections\PostAggregationCollection;
 use Level23\Druid\Responses\SegmentMetadataQueryResponse;
+use function json_encode;
 
 class QueryBuilder
 {
-    use HasFilter, HasHaving, HasDimensions, HasAggregations, HasIntervals, HasLimit, HasVirtualColumns, HasPostAggregations, HasSearchFilters;
+    use HasFilter, HasHaving, HasDimensions, HasAggregations, HasIntervals, HasLimit, HasVirtualColumns, HasPostAggregations, HasSearchFilters, HasDataSource;
 
-    /**
-     * @var \Level23\Druid\DruidClient
-     */
-    protected $client;
+    protected DruidClient $client;
 
-    /**
-     * @var null|\Level23\Druid\Queries\QueryBuilder
-     */
-    protected $query;
+    protected ?QueryBuilder $query = null;
 
-    /**
-     * @var string
-     */
-    protected $dataSource;
+    protected DataSourceInterface $dataSource;
 
-    /**
-     * @var string
-     */
-    protected $granularity;
+    protected Granularity $granularity;
 
     /**
      * @var array|\Level23\Druid\PostAggregations\PostAggregatorInterface[]
      */
-    protected $postAggregations = [];
+    protected array $postAggregations = [];
 
     /**
      * Set a paging identifier for a Select query.
      *
-     * @var array|null
+     * @var array<string,int>|null
      */
-    protected $pagingIdentifier;
+    protected ?array $pagingIdentifier = null;
 
     /**
      * The subtotal spec (only applies for groupBy queries)
      *
-     * @var array
+     * @var array<array<string>>
      */
-    protected $subtotals = [];
+    protected array $subtotals = [];
 
     /**
      * The metrics to select when using a Select Query.
      * When empty, all metrics are returned.
      *
-     * @var array
+     * @var array<string>
      */
-    protected $metrics = [];
+    protected array $metrics = [];
 
     /**
      * This contains a list of "temporary" field names which we will use to store our result of
      * a virtual column when the whereFlag() method is used.
      *
-     * @var array
+     * @var array<string>
      */
-    public $placeholders = [];
+    public array $placeholders = [];
 
     /**
      * QueryBuilder constructor.
      *
      * @param \Level23\Druid\DruidClient $client
      * @param string                     $dataSource
-     * @param string                     $granularity
+     * @param string|Granularity         $granularity
      */
-    public function __construct(DruidClient $client, string $dataSource, string $granularity = Granularity::ALL)
-    {
+    public function __construct(
+        DruidClient $client,
+        string $dataSource = '',
+        string|Granularity $granularity = Granularity::ALL
+    ) {
         $this->client      = $client;
         $this->query       = $this;
-        $this->dataSource  = $dataSource;
-        $this->granularity = Granularity::validate($granularity);
+        $this->dataSource  = new TableDataSource($dataSource);
+        $this->granularity = is_string($granularity) ? Granularity::from(strtolower($granularity)) : $granularity;
     }
 
     /**
@@ -123,17 +117,17 @@ class QueryBuilder
      * A virtual column can potentially draw from multiple underlying columns, although a virtual column always
      * presents itself as a single column.
      *
-     * @param string $expression
-     * @param string $as
-     * @param string $outputType
+     * @param string          $expression
+     * @param string          $as
+     * @param string|DataType $outputType
      *
      * @return $this
      * @see https://druid.apache.org/docs/latest/misc/math-expr.html
      */
-    public function selectVirtual(string $expression, string $as, $outputType = DataType::STRING)
+    public function selectVirtual(string $expression, string $as, string|DataType $outputType = DataType::STRING): self
     {
         $this->virtualColumn($expression, $as, $outputType);
-        $this->select($as, $as, null, $outputType);
+        $this->select($as, $as, $outputType);
 
         return $this;
     }
@@ -141,14 +135,15 @@ class QueryBuilder
     /**
      * Execute a druid query. We will try to detect the best possible query type possible.
      *
-     * @param array|QueryContext $context
+     * @param QueryContext|array<string,string|int|bool> $context
      *
      * @return QueryResponse
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function execute($context = []): QueryResponse
+    public function execute(array|QueryContext $context = []): QueryResponse
     {
-        $query = $this->buildQuery($context);
+        $query = $this->getQuery($context);
 
         $rawResponse = $this->client->executeQuery($query);
 
@@ -156,29 +151,15 @@ class QueryBuilder
     }
 
     /**
-     * Update/set the dataSource
-     *
-     * @param string $dataSource
-     *
-     * @return $this
-     */
-    public function dataSource(string $dataSource): QueryBuilder
-    {
-        $this->dataSource = $dataSource;
-
-        return $this;
-    }
-
-    /**
      * Update/set the granularity
      *
-     * @param string $granularity
+     * @param string|Granularity $granularity
      *
      * @return $this
      */
-    public function granularity(string $granularity): QueryBuilder
+    public function granularity(string|Granularity $granularity): QueryBuilder
     {
-        $this->granularity = Granularity::validate($granularity);
+        $this->granularity = is_string($granularity) ? Granularity::from(strtolower($granularity)) : $granularity;
 
         return $this;
     }
@@ -201,11 +182,11 @@ class QueryBuilder
      *   Array('continent'),
      * )
      *
-     * @param array $subtotals
+     * @param array<array<string>> $subtotals
      *
      * @return $this
      */
-    public function subtotals(array $subtotals)
+    public function subtotals(array $subtotals): self
     {
         $this->subtotals = $subtotals;
 
@@ -218,11 +199,11 @@ class QueryBuilder
      *
      * NOTE: This only applies to select queries!
      *
-     * @param array $metrics
+     * @param array<string> $metrics
      *
      * @return $this
      */
-    public function metrics(array $metrics)
+    public function metrics(array $metrics): self
     {
         $this->metrics = $metrics;
 
@@ -232,7 +213,7 @@ class QueryBuilder
     /**
      * Set a paging identifier. This is only applied for a SELECT query!
      *
-     * @param array $pagingIdentifier
+     * @param array<string,int> $pagingIdentifier
      *
      * @return \Level23\Druid\Queries\QueryBuilder
      */
@@ -248,6 +229,7 @@ class QueryBuilder
      *
      * @return SegmentMetadataQueryResponse
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function segmentMetadata(): SegmentMetadataQueryResponse
     {
@@ -261,46 +243,40 @@ class QueryBuilder
     /**
      * Return the query as a JSON string
      *
-     * @param array|QueryContext $context
+     * @param QueryContext|array<string,string|int|bool> $context
      *
      * @return string
      * @throws \InvalidArgumentException if the JSON cannot be encoded.
      */
-    public function toJson($context = []): string
+    public function toJson(array|QueryContext $context = []): string
     {
-        $query = $this->buildQuery($context);
+        $query = $this->getQuery($context);
 
-        $json = \json_encode($query->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        if (\JSON_ERROR_NONE !== \json_last_error()) {
-            throw new InvalidArgumentException(
-                'json_encode error: ' . \json_last_error_msg()
-            );
-        }
-
-        return (string)$json;
+        return strval(json_encode($query->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
     /**
      * Return the query as an array
      *
-     * @param array|QueryContext $context
+     * @param QueryContext|array<string,string|int|bool> $context
      *
-     * @return array
+     * @return array<string,array<mixed>|string|int>
      */
-    public function toArray($context = []): array
+    public function toArray(array|QueryContext $context = []): array
     {
-        return $this->buildQuery($context)->toArray();
+        return $this->getQuery($context)->toArray();
     }
 
     /**
      * Execute a TimeSeries query.
      *
-     * @param array|TimeSeriesQueryContext $context
+     * @param array<string,string|int|bool>|TimeSeriesQueryContext $context
      *
      * @return TimeSeriesQueryResponse
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function timeseries($context = []): TimeSeriesQueryResponse
+    public function timeseries(array|TimeSeriesQueryContext $context = []): TimeSeriesQueryResponse
     {
         $query = $this->buildTimeSeriesQuery($context);
 
@@ -312,21 +288,27 @@ class QueryBuilder
     /**
      * Execute a Scan Query.
      *
-     * @param array|ScanQueryContext $context      Query context parameters
-     * @param int|null               $rowBatchSize How many rows buffered before return to client. Default is 20480
-     * @param bool                   $legacy       Return results consistent with the legacy "scan-query" contrib
-     *                                             extension. Defaults to the value set by druid.query.scan.legacy,
-     *                                             which in turn defaults to false. See Legacy mode for details.
-     * @param string                 $resultFormat Result Format. Use one of the ScanQueryResultFormat::* constants.
+     * @param ScanQueryContext|array<string,string|int|bool> $context            Query context parameters
+     * @param int|null                                       $rowBatchSize       How many rows buffered before return
+     *                                                                           to client. Default is 20480
+     * @param bool                                           $legacy             Return results consistent with the
+     *                                                                           legacy "scan-query" contrib extension.
+     *                                                                           Defaults to the value set by
+     *                                                                           druid.query.scan.legacy, which in turn
+     *                                                                           defaults to false. See Legacy mode for
+     *                                                                           details.
+     * @param string|ScanQueryResultFormat                   $resultFormat       Result Format. Use one of the
+     *                                                                           ScanQueryResultFormat::* constants.
      *
      * @return ScanQueryResponse
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function scan(
-        $context = [],
-        int $rowBatchSize = null,
+        array|ScanQueryContext $context = [],
+        ?int $rowBatchSize = null,
         bool $legacy = false,
-        string $resultFormat = ScanQueryResultFormat::NORMAL_LIST
+        string|ScanQueryResultFormat $resultFormat = ScanQueryResultFormat::NORMAL_LIST
     ): ScanQueryResponse {
         $query = $this->buildScanQuery($context, $rowBatchSize, $legacy, $resultFormat);
 
@@ -338,12 +320,13 @@ class QueryBuilder
     /**
      * Execute a select query.
      *
-     * @param array|QueryContext $context
+     * @param QueryContext|array<string,string|int|bool> $context
      *
      * @return SelectQueryResponse
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function selectQuery($context = []): SelectQueryResponse
+    public function selectQuery(array|QueryContext $context = []): SelectQueryResponse
     {
         $query = $this->buildSelectQuery($context);
 
@@ -355,12 +338,13 @@ class QueryBuilder
     /**
      * Execute a topN query.
      *
-     * @param array|TopNQueryContext $context
+     * @param array<string,string|int|bool>|TopNQueryContext $context
      *
      * @return TopNQueryResponse
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function topN($context = []): TopNQueryResponse
+    public function topN(array|TopNQueryContext $context = []): TopNQueryResponse
     {
         $query = $this->buildTopNQuery($context);
 
@@ -372,31 +356,15 @@ class QueryBuilder
     /**
      * Return the group by query
      *
-     * @param array|GroupByV2QueryContext|GroupByV1QueryContext $context
+     * @param GroupByQueryContext|array<string,string|int|bool> $context
      *
      * @return GroupByQueryResponse
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function groupBy($context = []): GroupByQueryResponse
+    public function groupBy(array|GroupByQueryContext $context = []): GroupByQueryResponse
     {
-        $query = $this->buildGroupByQuery($context, 'v2');
-
-        $rawResponse = $this->client->executeQuery($query);
-
-        return $query->parseResponse($rawResponse);
-    }
-
-    /**
-     * Return the group by query
-     *
-     * @param array|GroupByV2QueryContext|GroupByV1QueryContext $context
-     *
-     * @return GroupByQueryResponse
-     * @throws \Level23\Druid\Exceptions\QueryResponseException
-     */
-    public function groupByV1($context = []): GroupByQueryResponse
-    {
-        $query = $this->buildGroupByQuery($context, 'v1');
+        $query = $this->buildGroupByQuery($context);
 
         $rawResponse = $this->client->executeQuery($query);
 
@@ -406,19 +374,30 @@ class QueryBuilder
     /**
      * Execute a search query and return the response
      *
-     * @param array|QueryContext $context
-     * @param string             $sortingOrder
+     * @param QueryContext|array<string,string|int|bool> $context
+     * @param string|SortingOrder                        $sortingOrder
      *
      * @return \Level23\Druid\Responses\SearchQueryResponse
+     * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Level23\Druid\Exceptions\QueryResponseException
      */
-    public function search($context = [], string $sortingOrder = SortingOrder::LEXICOGRAPHIC): SearchQueryResponse
-    {
+    public function search(
+        array|QueryContext $context = [],
+        string|SortingOrder $sortingOrder = SortingOrder::LEXICOGRAPHIC
+    ): SearchQueryResponse {
         $query = $this->buildSearchQuery($context, $sortingOrder);
 
         $rawResponse = $this->client->executeQuery($query);
 
         return $query->parseResponse($rawResponse);
+    }
+
+    /**
+     * @return \Level23\Druid\DruidClient
+     */
+    public function getClient(): DruidClient
+    {
+        return $this->client;
     }
 
     //<editor-fold desc="Protected methods">
@@ -431,17 +410,18 @@ class QueryBuilder
      *
      * @return bool|null
      */
-    protected function legacyIsOrderByDirectionDescending(string $dimension = null): ?bool
+    protected function legacyIsOrderByDirectionDescending(?string $dimension = null): ?bool
     {
         if ($this->limit) {
             $orderBy = $this->limit->getOrderByCollection();
 
             if ($orderBy->count() > 0) {
                 $orderByItems = $orderBy->toArray();
-                $first        = reset($orderByItems);
+                /** @var string[] $first */
+                $first = reset($orderByItems);
 
                 if ($first['dimension'] == '__time' || ($dimension && $dimension == $first['dimension'])) {
-                    return $first['direction'] == OrderByDirection::DESC;
+                    return $first['direction'] == OrderByDirection::DESC->value;
                 }
             }
         }
@@ -452,13 +432,15 @@ class QueryBuilder
     /**
      * Build a search query.
      *
-     * @param array|QueryContext $context
-     * @param string             $sortingOrder
+     * @param QueryContext|array<string,string|int|bool> $context
+     * @param string|SortingOrder                        $sortingOrder
      *
      * @return \Level23\Druid\Queries\SearchQuery
      */
-    protected function buildSearchQuery($context = [], string $sortingOrder = SortingOrder::LEXICOGRAPHIC): SearchQuery
-    {
+    protected function buildSearchQuery(
+        array|QueryContext $context = [],
+        string|SortingOrder $sortingOrder = SortingOrder::LEXICOGRAPHIC
+    ): SearchQuery {
         if (count($this->intervals) == 0) {
             throw new InvalidArgumentException('You have to specify at least one interval');
         }
@@ -502,11 +484,11 @@ class QueryBuilder
     /**
      * Build a select query.
      *
-     * @param array|QueryContext $context
+     * @param QueryContext|array<string,string|int|bool> $context
      *
      * @return \Level23\Druid\Queries\SelectQuery
      */
-    protected function buildSelectQuery($context = []): SelectQuery
+    protected function buildSelectQuery(array|QueryContext $context = []): SelectQuery
     {
         if (count($this->intervals) == 0) {
             throw new InvalidArgumentException('You have to specify at least one interval');
@@ -550,19 +532,19 @@ class QueryBuilder
     /**
      * Build a scan query.
      *
-     * @param array|QueryContext $context
-     * @param int|null           $rowBatchSize
-     * @param bool               $legacy
-     * @param string             $resultFormat
+     * @param QueryContext|array<string,string|int|bool> $context
+     * @param int|null                                   $rowBatchSize
+     * @param bool                                       $legacy
+     * @param string|ScanQueryResultFormat               $resultFormat
      *
      * @return \Level23\Druid\Queries\ScanQuery
      */
     protected function buildScanQuery(
-        $context = [],
-        int $rowBatchSize = null,
+        array|QueryContext $context = [],
+        ?int $rowBatchSize = null,
         bool $legacy = false,
-        string $resultFormat = ScanQueryResultFormat::NORMAL_LIST
-    ) {
+        string|ScanQueryResultFormat $resultFormat = ScanQueryResultFormat::NORMAL_LIST
+    ): ScanQuery {
         if (count($this->intervals) == 0) {
             throw new InvalidArgumentException('You have to specify at least one interval');
         }
@@ -635,11 +617,11 @@ class QueryBuilder
     /**
      * Build a TimeSeries query.
      *
-     * @param array|QueryContext $context
+     * @param QueryContext|array<string,string|int|bool> $context
      *
      * @return TimeSeriesQuery
      */
-    protected function buildTimeSeriesQuery($context = []): TimeSeriesQuery
+    protected function buildTimeSeriesQuery(array|QueryContext $context = []): TimeSeriesQuery
     {
         if (count($this->intervals) == 0) {
             throw new InvalidArgumentException('You have to specify at least one interval');
@@ -695,9 +677,7 @@ class QueryBuilder
             $descending = true;
         }
 
-        if ($descending) {
-            $query->setDescending($descending);
-        }
+        $query->setDescending($descending);
 
         return $query;
     }
@@ -705,11 +685,11 @@ class QueryBuilder
     /**
      * Build a topN query.
      *
-     * @param array|QueryContext $context
+     * @param QueryContext|array<string,string|int|bool> $context
      *
      * @return TopNQuery
      */
-    protected function buildTopNQuery($context = []): TopNQuery
+    protected function buildTopNQuery(array|QueryContext $context = []): TopNQuery
     {
         if (count($this->intervals) == 0) {
             throw new InvalidArgumentException('You have to specify at least one interval');
@@ -777,12 +757,11 @@ class QueryBuilder
     /**
      * Build the group by query
      *
-     * @param array|QueryContext $context
-     * @param string             $type
+     * @param QueryContext|array<string,string|int|bool> $context
      *
      * @return GroupByQuery
      */
-    protected function buildGroupByQuery($context = [], string $type = 'v2'): GroupByQuery
+    protected function buildGroupByQuery(array|QueryContext $context = []): GroupByQuery
     {
         if (count($this->intervals) == 0) {
             throw new InvalidArgumentException('You have to specify at least one interval');
@@ -797,16 +776,7 @@ class QueryBuilder
         );
 
         if (is_array($context)) {
-            switch ($type) {
-                case 'v1':
-                    $context = new GroupByV1QueryContext($context);
-                    break;
-
-                default:
-                case 'v2':
-                    $context = new GroupByV2QueryContext($context);
-                    break;
-            }
+            $context = new GroupByQueryContext($context);
         }
 
         $query->setContext($context);
@@ -841,11 +811,11 @@ class QueryBuilder
     /**
      * Return the query automatically detected based on the requested data.
      *
-     * @param array|QueryContext $context
+     * @param QueryContext|array<string,string|int|bool> $context
      *
      * @return \Level23\Druid\Queries\QueryInterface
      */
-    protected function buildQuery($context = []): QueryInterface
+    public function getQuery(array|QueryContext $context = []): QueryInterface
     {
         // Check if this is a scan query. This is the preferred way to query when there are
         // no aggregations done.
@@ -854,7 +824,7 @@ class QueryBuilder
         }
 
         // If we only have "grouped" by __time, then we can use a time series query.
-        // This is preferred, because it's a lot faster then doing a group by query.
+        // This is preferred, because it's a lot faster than doing a group by query.
         if ($this->isTimeSeriesQuery()) {
             return $this->buildTimeSeriesQuery($context);
         }
@@ -874,7 +844,7 @@ class QueryBuilder
             return $this->buildSearchQuery($context);
         }
 
-        return $this->buildGroupByQuery($context, 'v2');
+        return $this->buildGroupByQuery($context);
     }
 
     /**
@@ -889,8 +859,7 @@ class QueryBuilder
         }
 
         return $this->dimensions[0]->getDimension() == '__time'
-            && $this->dimensions[0] instanceof Dimension
-            && $this->dimensions[0]->getExtractionFunction() === null;
+            && $this->dimensions[0] instanceof Dimension;
     }
 
     /**
@@ -949,10 +918,6 @@ class QueryBuilder
     {
         foreach ($this->dimensions as $dimension) {
             if (!$dimension instanceof Dimension) {
-                return false;
-            }
-
-            if ($dimension->getExtractionFunction()) {
                 return false;
             }
 

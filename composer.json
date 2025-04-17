@@ -12,25 +12,23 @@
     {
       "name": "Teye Heimans",
       "email": "teye@level23.nl"
-    },
-    {
-      "name": "Marc van der Meulen",
-      "email": "marc@level23.nl"
     }
   ],
   "license": "Apache-2.0",
   "type": "library",
   "require": {
-    "php": "^7.2|^8.0",
+    "php": "^8.2",
     "ext-json": "*",
-    "guzzlehttp/guzzle": "^6.2|^7.0"
+    "guzzlehttp/guzzle": "^7.0"
   },
   "require-dev": {
-    "illuminate/support": "~5.0",
+    "infection/infection": "^0.29",
+    "laravel/framework": "^11.0",
+    "laravel/lumen-framework": "^11.0",
     "mockery/mockery": "^1.2",
-    "php-coveralls/php-coveralls": "^2.1",
-    "phpstan/phpstan": "^0.12",
-    "phpunit/phpunit": "^8|^9"
+    "phpstan/phpstan": "^2.0",
+    "phpstan/phpstan-mockery": "^2.0",
+    "phpunit/phpunit": "^11"
   },
   "suggest": {
     "psr/log": "Required for using the log handler"
@@ -48,7 +46,11 @@
   "config": {
     "preferred-install": "dist",
     "sort-packages": true,
-    "optimize-autoloader": true
+    "optimize-autoloader": true,
+    "allow-plugins": {
+      "infection/infection": true,
+      "infection/extension-installer": true
+    }
   },
   "minimum-stability": "stable",
   "prefer-stable": true,

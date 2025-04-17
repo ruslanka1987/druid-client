@@ -3,16 +3,21 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Metadata;
 
+use Closure;
+use DateTime;
+use Exception;
+use DateTimeInterface;
 use InvalidArgumentException;
 use Level23\Druid\DruidClient;
+use Level23\Druid\Types\TimeBound;
+use Level23\Druid\Filters\FilterBuilder;
+use Level23\Druid\Context\ContextInterface;
+use Level23\Druid\DataSources\DataSourceInterface;
 use Level23\Druid\Exceptions\QueryResponseException;
 
 class MetadataBuilder
 {
-    /**
-     * @var \Level23\Druid\DruidClient
-     */
-    protected $client;
+    protected DruidClient $client;
 
     public function __construct(DruidClient $client)
     {
@@ -33,9 +38,10 @@ class MetadataBuilder
      *
      * @param string $dataSource
      *
-     * @return array
+     * @return array<string,array<string,string|int>>
      *
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function intervals(string $dataSource): array
     {
@@ -48,6 +54,106 @@ class MetadataBuilder
         }
 
         return $intervals[$dataSource];
+    }
+
+    /**
+     * Return the time boundary for the given dataSource.
+     * This finds the first and/or last occurrence of a record in the given dataSource.
+     * Optionally, you can also apply a filter. For example, to only see when the first and/or last occurrence
+     * was for a record where a specific condition was met.
+     *
+     * The return type varies per given $bound. If TimeBound::BOTH was given (or null, which is the same),
+     * we will return an array with the minTime and maxTime:
+     * ```
+     * array(
+     *  'minTime' => \DateTime object,
+     *  'maxTime' => \DateTime object
+     * )
+     * ```
+     *
+     * If only one time was requested with either TimeBound::MIN_TIME or TimeBound::MAX_TIME, we will return
+     * a DateTime object.
+     *
+     * @param string|\Level23\Druid\DataSources\DataSourceInterface $dataSource
+     * @param string|\Level23\Druid\Types\TimeBound|null            $bound
+     * @param \Closure|null                                         $filterBuilder
+     * @param \Level23\Druid\Context\ContextInterface|null          $context
+     *
+     * @return ( $bound is null ? array<\DateTime> : ( $bound is "both" ? array<DateTime> : \DateTime))
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \Exception
+     */
+    public function timeBoundary(
+        string|DataSourceInterface $dataSource,
+        null|string|TimeBound $bound = TimeBound::BOTH,
+        ?Closure $filterBuilder = null,
+        ?ContextInterface $context = null
+    ): DateTime|array {
+
+        $query = [
+            'queryType'  => 'timeBoundary',
+            'dataSource' => is_string($dataSource) ? $dataSource : $dataSource->toArray(),
+        ];
+
+        if (is_string($bound)) {
+            $bound = TimeBound::from($bound);
+        }
+
+        if (!empty($bound) && $bound != TimeBound::BOTH) {
+            $query['bound'] = $bound->value;
+        }
+
+        if ($filterBuilder) {
+            $builder = new FilterBuilder();
+            call_user_func($filterBuilder, $builder);
+            $filter = $builder->getFilter();
+
+            if ($filter) {
+                $query['filter'] = $filter->toArray();
+            }
+        }
+
+        if ($context) {
+            $query['context'] = $context->toArray();
+        }
+
+        $url = $this->client->config('broker_url') . '/druid/v2';
+
+        /** @var array<int,null|array<string,string[]|string>> $response */
+        $response = $this->client->executeRawRequest('post', $url, $query);
+
+        if (!empty($response[0])
+            && !empty($response[0]['result'])
+            && is_array($response[0]['result'])
+        ) {
+            if (sizeof($response[0]['result']) == 1) {
+                $dateString = reset($response[0]['result']);
+                $date       = DateTime::createFromFormat('Y-m-d\TH:i:s.000\Z', $dateString);
+
+                if (!$date) {
+                    throw new Exception('Failed to parse time: ' . $dateString);
+                }
+
+                return $date;
+            } else {
+                $result = [];
+                foreach ($response[0]['result'] as $key => $dateString) {
+                    /** @var string $key */
+                    $date = DateTime::createFromFormat('Y-m-d\TH:i:s.000\Z', $dateString);
+
+                    if (!$date) {
+                        throw new Exception('Failed to parse time: ' . $dateString);
+                    }
+
+                    $result[$key] = $date;
+                }
+
+                return $result;
+            }
+        }
+
+        throw new Exception('Received incorrect response: ' . var_export($response, true));
     }
 
     /**
@@ -109,8 +215,9 @@ class MetadataBuilder
      * @param string $dataSource
      * @param string $interval
      *
-     * @return array
+     * @return array<string,array<mixed>|string|int>
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function interval(string $dataSource, string $interval): array
     {
@@ -183,20 +290,74 @@ class MetadataBuilder
      *          )
      *  )
      *
-     * @param string $dataSource
-     * @param string $interval
+     * @param string                             $dataSource
+     * @param \DateTimeInterface|int|string      $start
+     * @param \DateTimeInterface|int|string|null $stop
      *
-     * @return array
+     * @return array<int,array<string,string>>
+     * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Level23\Druid\Exceptions\QueryResponseException
      * @throws \Exception
      */
-    protected function getColumnsForInterval(string $dataSource, string $interval): array
-    {
+    protected function getColumnsForInterval(
+        string $dataSource,
+        DateTimeInterface|int|string $start,
+        DateTimeInterface|int|string|null $stop = null
+    ): array {
         $response = $this->client->query($dataSource)
-            ->interval($interval)
+            ->interval($start, $stop)
             ->segmentMetadata();
 
-        return $response->data();
+        $columns = [];
+
+        $rows = $response->data();
+
+        if (isset($rows[0])) {
+
+            /** @var array<string,array<string,array<string,string>>> $row */
+            $row = $rows[0];
+
+            if (isset($row['columns'])) {
+                array_walk($row['columns'], function ($value, $key) use (&$columns) {
+                    $columns[] = array_merge($value, ['field' => $key]);
+                });
+            }
+        }
+
+        return $columns;
+    }
+
+    /**
+     * Return the total number of rows for the given interval
+     *
+     * @param string                             $dataSource The name of the dataSource where you want to count the
+     *                                                       rows for
+     * @param \DateTimeInterface|int|string      $start      The start of the interval.
+     * @param \DateTimeInterface|int|string|null $stop       The end of the interval, or null when it was given as a
+     *                                                       "date/date" interval in the $start parameter.
+     *
+     * @return int
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \Exception
+     */
+    public function rowCount(
+        string $dataSource,
+        DateTimeInterface|int|string $start,
+        DateTimeInterface|int|string|null $stop = null
+    ): int {
+        $response = $this->client->query($dataSource)
+            ->interval($start, $stop)
+            ->segmentMetadata();
+
+        $totalRows = 0;
+        foreach ($response->data() as $row) {
+            if (isset($row['numRows'])) {
+                $totalRows += intval($row['numRows']);
+            }
+        }
+
+        return $totalRows;
     }
 
     /**
@@ -211,6 +372,7 @@ class MetadataBuilder
      *
      * @return string
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     protected function getIntervalByShorthand(string $dataSource, string $shortHand): string
     {
@@ -220,13 +382,20 @@ class MetadataBuilder
             throw new InvalidArgumentException('Only shorthand "first" and "last" are supported!');
         }
 
-        $intervals = array_keys($this->intervals($dataSource));
+        $rawIntervals = $this->intervals($dataSource);
 
-        if ($shortHand == 'last') {
-            return $intervals[0] ?? '';
+        $intervals = array_keys($rawIntervals);
+
+        $result = ($shortHand == 'last') ? ($intervals[0] ?? '') : ($intervals[count($intervals) - 1] ?? '');
+
+        if (empty($result)) {
+            $this->client->getLogger()?->warning(
+                'Failed to get ' . $shortHand . ' interval! ' .
+                'We got ' . count($rawIntervals) . ' intervals: ' . var_export($intervals, true)
+            );
         }
 
-        return $intervals[count($intervals) - 1] ?? '';
+        return $result;
     }
 
     /**
@@ -236,8 +405,8 @@ class MetadataBuilder
      * @param string $interval "last", "first" or a raw interval string as returned by druid.
      *
      * @return \Level23\Druid\Metadata\Structure
+     * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Level23\Druid\Exceptions\QueryResponseException
-     * @throws \Exception
      */
     public function structure(string $dataSource, string $interval = 'last'): Structure
     {
@@ -263,6 +432,7 @@ class MetadataBuilder
             );
         }
 
+        /** @var array<string|string[]> $data */
         $data = reset($structureData);
 
         $dimensionFields = explode(',', $data['metadata']['dimensions'] ?? '');
@@ -285,5 +455,22 @@ class MetadataBuilder
         }
 
         return new Structure($dataSource, $dimensions, $metrics);
+    }
+
+    /**
+     * Return a list of all known dataSources
+     *
+     * @return array<string>
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     */
+    public function dataSources(): array
+    {
+        $url = $this->client->config('coordinator_url') . '/druid/coordinator/v1/datasources';
+
+        /** @var array<int,string> $dataSources */
+        $dataSources = $this->client->executeRawRequest('get', $url);
+
+        return $dataSources;
     }
 }

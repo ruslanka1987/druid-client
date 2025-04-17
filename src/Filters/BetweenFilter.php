@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Filters;
 
-use Level23\Druid\Types\SortingOrder;
-use Level23\Druid\Extractions\ExtractionInterface;
+use Level23\Druid\Types\DataType;
 
 /**
  * Class BetweenFilter
@@ -21,80 +20,63 @@ use Level23\Druid\Extractions\ExtractionInterface;
  */
 class BetweenFilter implements FilterInterface
 {
-    /**
-     * @var string
-     */
-    protected $dimension;
+    protected string $column;
 
-    /**
-     * @var int|string
-     */
-    protected $minValue;
+    protected int|string|float $minValue;
 
-    /**
-     * @var int|string
-     */
-    protected $maxValue;
+    protected int|string|float $maxValue;
 
-    /**
-     * @var string|null
-     */
-    protected $ordering;
-
-    /**
-     * @var \Level23\Druid\Extractions\ExtractionInterface|null
-     */
-    protected $extractionFunction;
+    protected DataType $valueType;
 
     /**
      * BetweenFilter constructor.
      *
-     * @param string                   $dimension         The dimension to filter on
-     * @param int|string               $minValue
-     * @param int|string               $maxValue
-     * @param null|string              $ordering          Specifies the sorting order to use when comparing values
-     *                                                    against the bound.
-     * @param ExtractionInterface|null $extractionFunction
+     * @param string           $column    The dimension to filter on
+     * @param int|string|float $minValue
+     * @param int|string|float $maxValue
+     * @param DataType|null    $valueType String specifying the type of bounds to match. The valueType determines how
+     *                                    Druid interprets the matchValue to assist in converting to the type of the
+     *                                    matched column and also defines the type of comparison used when matching
+     *                                    values.
      */
     public function __construct(
-        string $dimension,
-        $minValue,
-        $maxValue,
-        string $ordering = null,
-        ExtractionInterface $extractionFunction = null
+        string $column,
+        int|float|string $minValue,
+        int|float|string $maxValue,
+        ?DataType $valueType = null
     ) {
-        if (!is_null($ordering)) {
-            $ordering = SortingOrder::validate($ordering);
+        if (is_null($valueType)) {
+
+            if (is_int($minValue)) {
+                $valueType = DataType::LONG;
+            } elseif (is_float($minValue)) {
+                $valueType = DataType::DOUBLE;
+            } else {
+                $valueType = DataType::STRING;
+            }
         }
 
-        $this->dimension          = $dimension;
-        $this->ordering           = $ordering ?: (is_numeric($minValue) && is_numeric($maxValue) ? SortingOrder::NUMERIC : SortingOrder::LEXICOGRAPHIC);
-        $this->extractionFunction = $extractionFunction;
-        $this->minValue           = $minValue;
-        $this->maxValue           = $maxValue;
+        $this->column    = $column;
+        $this->valueType = $valueType;
+        $this->minValue  = $minValue;
+        $this->maxValue  = $maxValue;
     }
 
     /**
      * Return the filter as it can be used in the druid query.
      *
-     * @return array
+     * @return array<string,string|bool|float>
      */
     public function toArray(): array
     {
-        $result = [
-            'type'        => 'bound',
-            'dimension'   => $this->dimension,
-            'ordering'    => (string)$this->ordering,
-            'lower'       => (string)$this->minValue,
-            'lowerStrict' => false,
-            'upper'       => (string)$this->maxValue,
-            'upperStrict' => true,
+        return [
+            'type'           => 'range',
+            'column'         => $this->column,
+            'matchValueType' => $this->valueType->value,
+            'lower'          => $this->minValue,
+            'lowerOpen'      => false, // >=
+            'upper'          => $this->maxValue,
+            'upperOpen'      => true, // <
         ];
-
-        if ($this->extractionFunction) {
-            $result['extractionFn'] = $this->extractionFunction->toArray();
-        }
-
-        return $result;
     }
 }

@@ -11,9 +11,9 @@ class TaskContext extends Context implements ContextInterface
      *
      * @param int $taskLockTimeout
      *
-     * @return $this;
+     * @return $this
      */
-    public function setTaskLockTimeout(int $taskLockTimeout)
+    public function setTaskLockTimeout(int $taskLockTimeout): self
     {
         $this->properties['taskLockTimeout'] = $taskLockTimeout;
 
@@ -30,9 +30,9 @@ class TaskContext extends Context implements ContextInterface
      *
      * @param int $priority
      *
-     * @return $this;
+     * @return $this
      */
-    public function setPriority(int $priority)
+    public function setPriority(int $priority): self
     {
         $this->properties['priority'] = $priority;
 

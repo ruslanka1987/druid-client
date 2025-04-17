@@ -4,8 +4,11 @@ declare(strict_types=1);
 namespace Level23\Druid\Tests\Tasks;
 
 use Mockery;
+use JsonException;
+use Mockery\MockInterface;
 use InvalidArgumentException;
 use Level23\Druid\DruidClient;
+use Mockery\LegacyMockInterface;
 use Level23\Druid\Tests\TestCase;
 use Level23\Druid\Tasks\CompactTask;
 use Level23\Druid\Interval\Interval;
@@ -15,14 +18,11 @@ use Level23\Druid\Metadata\MetadataBuilder;
 
 class TaskBuilderTest extends TestCase
 {
-    /**
-     * @var \Level23\Druid\DruidClient|\Mockery\LegacyMockInterface|\Mockery\MockInterface
-     */
-    protected $client;
+    protected DruidClient|MockInterface|LegacyMockInterface $client;
 
     protected function setUp(): void
     {
-        $guzzle = new GuzzleClient(['base_uri' => 'http://httpbin.org']);
+        $guzzle = new GuzzleClient(['base_uri' => 'https://httpbin.org']);
 
         $this->client = Mockery::mock(DruidClient::class, [[], $guzzle]);
 
@@ -43,6 +43,7 @@ class TaskBuilderTest extends TestCase
 
     /**
      * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function testExecute(): void
     {
@@ -63,7 +64,7 @@ class TaskBuilderTest extends TestCase
             ->with($task)
             ->andReturn('myTaskId');
 
-        $response = $builder->execute([]);
+        $response = $builder->execute();
 
         $this->assertEquals('myTaskId', $response);
     }
@@ -79,7 +80,7 @@ class TaskBuilderTest extends TestCase
         $task = Mockery::mock(CompactTask::class, ['animals', new Interval('12-02-2019', '13-02-2019')]);
 
         $task->shouldReceive('toArray')
-            ->andReturn([INF => INF]);
+            ->andThrows(JsonException::class, 'Inf and NaN cannot be JSON encoded');
 
         $builder
             ->shouldAllowMockingProtectedMethods()
@@ -88,13 +89,14 @@ class TaskBuilderTest extends TestCase
             ->with(['context' => 'here'])
             ->andReturn($task);
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('json_encode error:');
+        $this->expectException(JsonException::class);
+        $this->expectExceptionMessage('Inf and NaN cannot be JSON encoded');
 
         $builder->toJson(['context' => 'here']);
     }
 
     /**
+     * @throws \JsonException
      * @throws \Level23\Druid\Exceptions\QueryResponseException
      */
     public function testToJson(): void
@@ -144,7 +146,10 @@ class TaskBuilderTest extends TestCase
         $this->assertEquals(['task' => 'here'], $response);
     }
 
-    public function validateIntervalDataProvider(): array
+    /**
+     * @return array<array<string|bool|array<string,array<string,int>>>>
+     */
+    public static function validateIntervalDataProvider(): array
     {
         return [
             [
@@ -196,11 +201,13 @@ class TaskBuilderTest extends TestCase
     }
 
     /**
-     * @param string $givenInterval
-     * @param array  $allIntervals
+     * @param string                          $givenInterval
+     * @param array<string,array<string,int>> $allIntervals
      *
-     * @param bool   $expectsValid
+     * @param bool                            $expectsValid
      *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
      * @throws \Exception
      * @dataProvider validateIntervalDataProvider
      */
@@ -227,7 +234,6 @@ class TaskBuilderTest extends TestCase
             $this->expectExceptionMessage('Error, invalid interval given.');
         }
 
-        /** @noinspection PhpUndefinedMethodInspection */
         $builder->shouldAllowMockingProtectedMethods()->validateInterval(
             $dataSource,
             new Interval($givenInterval)

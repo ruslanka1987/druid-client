@@ -4,26 +4,34 @@ declare(strict_types=1);
 namespace Level23\Druid\Tests\Metadata;
 
 use Mockery;
+use Closure;
+use Exception;
+use Mockery\MockInterface;
+use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
 use Level23\Druid\DruidClient;
+use Mockery\LegacyMockInterface;
 use Level23\Druid\Tests\TestCase;
+use Level23\Druid\Types\TimeBound;
 use Level23\Druid\Metadata\Structure;
 use GuzzleHttp\Client as GuzzleClient;
 use Level23\Druid\Queries\QueryBuilder;
+use Level23\Druid\Context\QueryContext;
+use Level23\Druid\Filters\FilterBuilder;
 use Level23\Druid\Metadata\MetadataBuilder;
+use Level23\Druid\Context\ContextInterface;
+use Level23\Druid\DataSources\TableDataSource;
+use Level23\Druid\DataSources\DataSourceInterface;
 use Level23\Druid\Exceptions\QueryResponseException;
 use Level23\Druid\Responses\SegmentMetadataQueryResponse;
 
 class MetadataBuilderTest extends TestCase
 {
-    /**
-     * @var \Level23\Druid\DruidClient|\Mockery\LegacyMockInterface|\Mockery\MockInterface
-     */
-    protected $client;
+    protected QueryBuilder|MockInterface|LegacyMockInterface $client;
 
     protected function setUp(): void
     {
-        $guzzle = new GuzzleClient(['base_uri' => 'http://httpbin.org']);
+        $guzzle = new GuzzleClient(['base_uri' => 'https://httpbin.org']);
 
         $this->client = Mockery::mock(DruidClient::class, [[], $guzzle]);
 
@@ -31,7 +39,7 @@ class MetadataBuilderTest extends TestCase
     }
 
     /**
-     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException|\GuzzleHttp\Exception\GuzzleException
      */
     public function testIntervals(): void
     {
@@ -65,7 +73,7 @@ class MetadataBuilderTest extends TestCase
     }
 
     /**
-     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException|\GuzzleHttp\Exception\GuzzleException
      */
     public function testInterval(): void
     {
@@ -95,7 +103,10 @@ class MetadataBuilderTest extends TestCase
         $this->assertEquals($intervalResponse, $response);
     }
 
-    public function structureDataProvider(): array
+    /**
+     * @return array<array<array<int|string,array<string,array<string,array<int|string,array<int,scalar>|int|string>>|int|string>>|Structure|string|null>>
+     */
+    public static function structureDataProvider(): array
     {
         $dataSource = 'myDataSource';
 
@@ -199,7 +210,7 @@ class MetadataBuilderTest extends TestCase
     }
 
     /**
-     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException|\GuzzleHttp\Exception\GuzzleException
      */
     public function testStructureWithEmptyInterval(): void
     {
@@ -212,13 +223,13 @@ class MetadataBuilderTest extends TestCase
     }
 
     /**
-     * @param string                            $dataSource
-     * @param string                            $interval
-     * @param array                             $intervalResponse
-     * @param array                             $columnsResponse
-     * @param \Level23\Druid\Metadata\Structure $expectedResponse
+     * @param string                                                                                    $dataSource
+     * @param string                                                                                    $interval
+     * @param array<string,array<string,array<string,array<string[]|string,string|int|array<scalar>>>>> $intervalResponse
+     * @param array<array<string,string|int>>                                                           $columnsResponse
+     * @param \Level23\Druid\Metadata\Structure|null                                                    $expectedResponse
      *
-     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException|\GuzzleHttp\Exception\GuzzleException
      * @dataProvider structureDataProvider
      */
     public function testStructure(
@@ -226,8 +237,8 @@ class MetadataBuilderTest extends TestCase
         string $interval,
         array $intervalResponse,
         array $columnsResponse,
-        $expectedResponse
-    ) {
+        ?Structure $expectedResponse
+    ): void {
 
         $metadataBuilder = Mockery::mock(MetadataBuilder::class, [$this->client]);
 
@@ -272,11 +283,10 @@ class MetadataBuilderTest extends TestCase
     }
 
     /**
-     * @testWith [[{"columns": {"__time": {"type":"LONG"}}}]]
-     *
-     * @param array $segmentMetadataResponse
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
      */
-    public function testGetColumnsForInterval(array $segmentMetadataResponse): void
+    public function testGetColumnsForInterval(): void
     {
         $dataSource      = 'myDataSource';
         $interval        = '2019-08-19T13:00:00.000Z/2019-08-19T14:00:00.000Z';
@@ -291,21 +301,136 @@ class MetadataBuilderTest extends TestCase
 
         $queryBuilder->shouldReceive('interval')
             ->once()
-            ->with($interval)
+            ->with($interval, null)
             ->andReturn($queryBuilder);
 
-        $responseObj = new SegmentMetadataQueryResponse($segmentMetadataResponse);
+        $rawResponse = [
+            [
+                'id'               => 'myDataSource_2019-08-19T13:00:00.000Z/2019-08-19T14:00:00.000Z_2019-08-19T00:00:03.958Z',
+                'intervals'        => ['2019-08-19T13:00:00.000Z/2019-08-19T14:00:00.000Z',],
+                'columns'          =>
+                    [
+                        '__time'  =>
+                            [
+                                'typeSignature'     => 'LONG',
+                                'type'              => 'LONG',
+                                'hasMultipleValues' => false,
+                                'hasNulls'          => false,
+                                'size'              => 0,
+                                'cardinality'       => null,
+                                'minValue'          => null,
+                                'maxValue'          => null,
+                                'errorMessage'      => null,
+                            ],
+                        'iso'     =>
+                            [
+                                'typeSignature'     => 'STRING',
+                                'type'              => 'STRING',
+                                'hasMultipleValues' => false,
+                                'hasNulls'          => false,
+                                'size'              => 0,
+                                'cardinality'       => 42,
+                                'minValue'          => 'be',
+                                'maxValue'          => 'zw',
+                                'errorMessage'      => null,
+                            ],
+                        'counter' =>
+                            [
+                                'typeSignature'     => 'LONG',
+                                'type'              => 'LONG',
+                                'hasMultipleValues' => false,
+                                'hasNulls'          => false,
+                                'size'              => 0,
+                                'cardinality'       => null,
+                                'minValue'          => null,
+                                'maxValue'          => null,
+                                'errorMessage'      => null,
+                            ],
+                    ],
+                'size'             => 0,
+                'numRows'          => 151,
+                'aggregators'      => null,
+                'timestampSpec'    => null,
+                'queryGranularity' => null,
+                'rollup'           => null,
+            ],
+        ];
+
+        $responseObj = new SegmentMetadataQueryResponse($rawResponse);
 
         $queryBuilder->shouldReceive('segmentMetadata')
             ->once()
             ->andReturn($responseObj);
 
-        /** @noinspection PhpUndefinedMethodInspection */
         $response = $metadataBuilder
             ->shouldAllowMockingProtectedMethods()
             ->getColumnsForInterval($dataSource, $interval);
 
-        $this->assertEquals($responseObj->data(), $response);
+        $expected = [];
+        array_walk($rawResponse[0]['columns'], function ($value, $key) use (&$expected) {
+            $expected[] = array_merge($value, ['field' => $key]);
+        });
+        $this->assertEquals($expected, $response);
+    }
+
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     */
+    public function testRowCount(): void
+    {
+        $dataSource      = 'myDataSource';
+        $interval        = '2019-08-19T13:00:00.000Z/2019-08-19T14:00:00.000Z';
+        $metadataBuilder = Mockery::mock(MetadataBuilder::class, [$this->client]);
+        $metadataBuilder->makePartial();
+        $queryBuilder = Mockery::mock(QueryBuilder::class, [$this->client, 'myDataSource']);
+
+        $this->client->shouldReceive('query')
+            ->with($dataSource)
+            ->once()
+            ->andReturn($queryBuilder);
+
+        $queryBuilder->shouldReceive('interval')
+            ->once()
+            ->with($interval, null)
+            ->andReturn($queryBuilder);
+
+        $rawResponse = [
+            [
+                'id'               => 'myDataSource_2019-08-19T13:00:00.000Z/2019-08-19T14:00:00.000Z_2019-08-19T00:00:03.958Z',
+                'intervals'        => ['2019-08-19T13:00:00.000Z/2019-08-19T14:00:00.000Z',],
+                'columns'          => [],
+                'size'             => 0,
+                'numRows'          => 151,
+                'aggregators'      => null,
+                'timestampSpec'    => null,
+                'queryGranularity' => null,
+                'rollup'           => null,
+            ],
+            [
+                'id'               => 'myDataSource_2019-08-19T13:00:00.000Z/2019-08-19T15:00:00.000Z_2019-08-19T00:00:03.958Z',
+                'intervals'        => ['2019-08-19T13:00:00.000Z/2019-08-19T14:00:00.000Z',],
+                'columns'          => [],
+                'size'             => 0,
+                'numRows'          => 645,
+                'aggregators'      => null,
+                'timestampSpec'    => null,
+                'queryGranularity' => null,
+                'rollup'           => null,
+            ],
+        ];
+
+        $responseObj = new SegmentMetadataQueryResponse($rawResponse);
+
+        $queryBuilder->shouldReceive('segmentMetadata')
+            ->once()
+            ->andReturn($responseObj);
+
+        $response = $metadataBuilder
+            ->shouldAllowMockingProtectedMethods()
+            ->rowCount($dataSource, $interval);
+
+        $this->assertEquals(645 + 151, $response);
     }
 
     /**
@@ -318,6 +443,9 @@ class MetadataBuilderTest extends TestCase
      *
      * @param string $dataSource
      * @param string $shortHand
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
      */
     public function testGetIntervalByShorthand(string $dataSource, string $shortHand): void
     {
@@ -340,7 +468,6 @@ class MetadataBuilderTest extends TestCase
                 ->andReturn($intervals);
         }
 
-        /** @noinspection PhpUndefinedMethodInspection */
         $response = $metadataBuilder
             ->shouldAllowMockingProtectedMethods()
             ->getIntervalByShorthand($dataSource, $shortHand);
@@ -350,5 +477,276 @@ class MetadataBuilderTest extends TestCase
         } else {
             $this->assertEquals('2019-08-19T12:00:00.000Z/2019-08-19T13:00:00.000Z', $response);
         }
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     *
+     * @testWith ["laST"]
+     *           ["first"]
+     *
+     * @param string $shortHand
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     */
+    public function testGetIntervalByShorthandWithoutData(string $shortHand): void
+    {
+        $metadataBuilder = Mockery::mock(MetadataBuilder::class, [$this->client]);
+        $metadataBuilder->makePartial();
+
+        $metadataBuilder->shouldReceive('intervals')
+            ->once()
+            ->with('wikipedia')
+            ->andReturn([]);
+
+        $logger = Mockery::mock(LoggerInterface::class);
+
+        $this->client->shouldReceive('getLogger')
+            ->once()
+            ->andReturn($logger);
+
+        $logger->shouldReceive('warning')
+            ->once()
+            ->withArgs(function($msg) use ($shortHand) {
+                $this->assertEquals('Failed to get ' . strtolower($shortHand) . ' interval! ' .
+                    'We got 0 intervals: ' . var_export([], true), $msg);
+
+                return true;
+
+            });
+
+        $response = $metadataBuilder
+            ->shouldAllowMockingProtectedMethods()
+            ->getIntervalByShorthand('wikipedia', $shortHand);
+
+        $this->assertEquals('', $response);
+    }
+
+    /**
+     * @return array<array<string|TableDataSource|TimeBound|Closure|QueryContext|null>>
+     */
+    public static function dataProvider(): array
+    {
+        return [
+            [
+                'wikipedia',
+                TimeBound::MAX_TIME,
+                function (FilterBuilder $builder) {
+                    $builder->where('name', '=', 'John Doe');
+                },
+            ],
+            [
+                'wikipedia',
+                null,
+                null,
+                new QueryContext(['timeout' => '3000']),
+            ],
+            [
+                'wikipedia',
+                TimeBound::BOTH,
+            ],
+            [
+                new TableDataSource('wikipedia'),
+                'minTime',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider dataProvider
+     *
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function testTimeBoundary(
+        DataSourceInterface|string $dataSource,
+        null|string|TimeBound $bound,
+        ?Closure $filterBuilder = null,
+        ?ContextInterface $context = null,
+    ): void {
+        $metadataBuilder = Mockery::mock(MetadataBuilder::class, [$this->client]);
+        $metadataBuilder->makePartial();
+
+        $expected = [
+            'queryType'  => 'timeBoundary',
+            'dataSource' => $dataSource instanceof DataSourceInterface ? $dataSource->toArray() : $dataSource,
+        ];
+
+        $expectedBound = $bound;
+        if (is_string($expectedBound)) {
+            $expectedBound = TimeBound::from($expectedBound);
+        }
+
+        if (!empty($expectedBound) && $expectedBound != TimeBound::BOTH) {
+            $expected['bound'] = $expectedBound->value;
+        }
+
+        if ($filterBuilder) {
+            $builder = new FilterBuilder();
+            call_user_func($filterBuilder, $builder);
+            $filter = $builder->getFilter();
+
+            if ($filter) {
+                $expected['filter'] = $filter->toArray();
+            }
+        }
+
+        if ($context) {
+            $expected['context'] = $context->toArray();
+        }
+
+        $this->client->shouldReceive('config')
+            ->once()
+            ->with('broker_url')
+            ->andReturn('http://broker.url');
+
+        $this->client->shouldReceive('executeRawRequest')
+            ->once()
+            ->withArgs(function ($method, $url, $config) use ($expected) {
+                $this->assertEquals('post', $method);
+                $this->assertEquals('http://broker.url/druid/v2', $url);
+                $this->assertEquals($expected, $config);
+
+                return true;
+            })
+            ->andReturn([
+                [
+                    'timestamp' => "2013-05-09T18:24:00.000Z",
+                    "result"    => [
+                        "minTime" => "2013-05-09T18:24:00.000Z",
+                        "maxTime" => "2013-05-09T18:37:00.000Z",
+                    ],
+                ],
+            ]);
+
+        $metadataBuilder->timeBoundary(
+            $dataSource,
+            $bound,
+            $filterBuilder,
+            $context
+        );
+    }
+
+    /**
+     * @return array<int, array<int,array<string, array<string, string>|string>|string>>
+     */
+    public static function responseDataProvider(): array
+    {
+        return [
+            [
+                [
+                    'timestamp' => "2013-05-09T18:24:00.000Z",
+                    "result"    => [
+                        "minTime" => "2013-05-09T18:24:00.000Z",
+                        "maxTime" => "2013-05-09T18:37:00.000Z",
+                    ],
+                ],
+            ],
+            [
+                [
+                    'timestamp' => "2013-05-09T18:24:00.000Z",
+                    "result"    => [
+                        "minTime" => "wrong",
+                        "maxTime" => "2013-05-09T18:37:00.000Z",
+                    ],
+                ],
+                'Failed to parse time: wrong',
+            ],
+            [
+                [
+                    'timestamp' => "2013-05-09T18:24:00.000Z",
+                    "result"    => [
+                        "minTime" => "2013-05-09T18:24:00.000Z",
+                    ],
+                ],
+            ],
+            [
+                [
+                    'timestamp' => "2013-05-09T18:24:00.000Z",
+                    "result"    => [
+                        "maxTime" => "2013-05-09T18:24:00.000Z",
+                    ],
+                ],
+            ],
+            [
+                [
+                    'timestamp' => "2013-05-09T18:24:00.000Z",
+                    "result"    => [
+                        "maxTime" => "wrong",
+                    ],
+                ],
+                'Failed to parse time: wrong',
+            ],
+            [
+                [],
+                'Received incorrect response:',
+            ],
+
+        ];
+    }
+
+    /**
+     * @dataProvider responseDataProvider
+     *
+     * @param array<int,null|array<string,string[]|string>> $response
+     * @param string|null                                   $exceptionMessage
+     *
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Level23\Druid\Exceptions\QueryResponseException
+     */
+    public function testTimeBoundaryResponse(array $response, ?string $exceptionMessage = null): void
+    {
+        $metadataBuilder = Mockery::mock(MetadataBuilder::class, [$this->client]);
+        $metadataBuilder->makePartial();
+
+        $this->client->shouldReceive('config')
+            ->once()
+            ->with('broker_url')
+            ->andReturn('http://broker.url');
+
+        if (!empty($exceptionMessage)) {
+            $this->expectException(Exception::class);
+            $this->expectExceptionMessage($exceptionMessage);
+        }
+
+        $this->client->shouldReceive('executeRawRequest')
+            ->once()
+            ->withArgs(function ($method, $url, $config) {
+                $expected = [
+                    'queryType'  => 'timeBoundary',
+                    'dataSource' => 'wikipedia',
+                ];
+                $this->assertEquals('post', $method);
+                $this->assertEquals('http://broker.url/druid/v2', $url);
+                $this->assertEquals($expected, $config);
+
+                return true;
+            })
+            ->andReturn([$response]);
+
+        $metadataBuilder->timeBoundary('wikipedia');
+    }
+
+    public function testDataSources(): void
+    {
+        $metadataBuilder = Mockery::mock(MetadataBuilder::class, [$this->client]);
+        $metadataBuilder->makePartial();
+
+        $this->client->shouldReceive('config')
+            ->once()
+            ->with('coordinator_url')
+            ->andReturn('https://coordinator.url');
+
+        $this->client->shouldReceive('executeRawRequest')
+            ->once()
+            ->with('get', 'https://coordinator.url/druid/coordinator/v1/datasources')
+            ->andReturn(['wikipedia', 'clicks']);
+
+        $response = $metadataBuilder->dataSources();
+
+        $this->assertEquals(['wikipedia', 'clicks'], $response);
     }
 }

@@ -5,7 +5,6 @@ namespace Level23\Druid\Filters;
 
 use Level23\Druid\Types\SortingOrder;
 use Level23\Druid\Types\BoundOperator;
-use Level23\Druid\Extractions\ExtractionInterface;
 
 /**
  * Class BoundFilter
@@ -17,68 +16,52 @@ use Level23\Druid\Extractions\ExtractionInterface;
  */
 class BoundFilter implements FilterInterface
 {
-    /**
-     * @var string
-     */
-    protected $dimension;
+    protected string $dimension;
 
-    /**
-     * @var string
-     */
-    protected $operator;
+    protected BoundOperator $operator;
 
-    /**
-     * @var string
-     */
-    protected $value;
+    protected string $value;
 
-    /**
-     * @var string|null
-     */
-    protected $ordering;
-
-    /**
-     * @var \Level23\Druid\Extractions\ExtractionInterface|null
-     */
-    protected $extractionFunction;
+    protected SortingOrder $ordering;
 
     /**
      * BoundFilter constructor.
      *
      * @param string                   $dimension         The dimension to filter on
-     * @param string                   $operator          The operator to use. Use ">", ">=", "<", or "<=" Or use the
+     * @param string|BoundOperator     $operator          The operator to use. Use ">", ">=", "<", or "<=" Or use the
      *                                                    BoundOperator constants.
-     * @param string                   $value             The value to compare with. This can either be an numeric or a
+     * @param string                   $value             The value to compare with. This can either be a numeric or a
      *                                                    string.
-     * @param string|null              $ordering          Specifies the sorting order to use when comparing values
+     * @param string|SortingOrder|null $ordering          Specifies the sorting order using when comparing values
      *                                                    against the bound.
-     * @param ExtractionInterface|null $extractionFunction
      */
     public function __construct(
         string $dimension,
-        string $operator,
+        string|BoundOperator $operator,
         string $value,
-        string $ordering = null,
-        ExtractionInterface $extractionFunction = null
+        string|SortingOrder|null $ordering = null
     ) {
+        if(is_string($ordering)) {
+            $ordering = SortingOrder::from(strtolower($ordering));
+        }
+
         $this->dimension          = $dimension;
-        $this->operator           = BoundOperator::validate($operator);
+        $this->operator           = is_string($operator) ? BoundOperator::from($operator) : $operator;
         $this->value              = $value;
-        $this->ordering           = $ordering ?: (is_numeric($value) ? SortingOrder::NUMERIC : SortingOrder::LEXICOGRAPHIC);
-        $this->extractionFunction = $extractionFunction;
+        $this->ordering           = $ordering ?? (is_numeric($value) ? SortingOrder::NUMERIC : SortingOrder::LEXICOGRAPHIC);
     }
 
     /**
      * Return the filter as it can be used in the druid query.
      *
-     * @return array
+     * @return array<string,string|bool|array<string,string|int|bool|array<mixed>>>
      */
     public function toArray(): array
     {
         $result = [
             'type'      => 'bound',
             'dimension' => $this->dimension,
-            'ordering'  => $this->ordering,
+            'ordering'  => $this->ordering->value,
         ];
 
         switch ($this->operator) {
@@ -98,10 +81,6 @@ class BoundFilter implements FilterInterface
                 $result['upper']       = $this->value;
                 $result['upperStrict'] = true;
                 break;
-        }
-
-        if ($this->extractionFunction) {
-            $result['extractionFn'] = $this->extractionFunction->toArray();
         }
 
         return $result;

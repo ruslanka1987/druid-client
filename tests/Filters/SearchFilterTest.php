@@ -5,11 +5,13 @@ namespace Level23\Druid\Tests\Filters;
 
 use Level23\Druid\Tests\TestCase;
 use Level23\Druid\Filters\SearchFilter;
-use Level23\Druid\Extractions\LookupExtraction;
 
 class SearchFilterTest extends TestCase
 {
-    public function dataProvider(): array
+    /**
+     * @return array<array<string|string[]|bool|null>>
+     */
+    public static function dataProvider(): array
     {
         return [
             ['name', 'John', false],
@@ -23,11 +25,11 @@ class SearchFilterTest extends TestCase
     /**
      * @dataProvider dataProvider
      *
-     * @param string       $dimension
-     * @param string|array $valueOrValues
-     * @param bool         $caseSensitive
+     * @param string          $dimension
+     * @param string|string[] $valueOrValues
+     * @param bool            $caseSensitive
      */
-    public function testFilter(string $dimension, $valueOrValues, ?bool $caseSensitive): void
+    public function testFilter(string $dimension, array|string $valueOrValues, ?bool $caseSensitive): void
     {
         if ($caseSensitive !== null) {
             $filter = new SearchFilter($dimension, $valueOrValues, $caseSensitive);
@@ -53,26 +55,6 @@ class SearchFilterTest extends TestCase
             'type'      => 'search',
             'dimension' => $dimension,
             'query'     => $expectedQuery,
-        ], $filter->toArray());
-    }
-
-    public function testExtractionFunction(): void
-    {
-        $extractionFunction = new LookupExtraction(
-            'full_username', false
-        );
-
-        $filter = new SearchFilter('name', 'john', false, $extractionFunction);
-
-        $this->assertEquals([
-            'type'         => 'search',
-            'dimension'    => 'name',
-            'query'        => [
-                'type'          => 'contains',
-                'value'         => 'john',
-                'caseSensitive' => false,
-            ],
-            'extractionFn' => $extractionFunction->toArray(),
         ], $filter->toArray());
     }
 }

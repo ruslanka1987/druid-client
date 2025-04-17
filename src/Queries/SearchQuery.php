@@ -3,87 +3,65 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Queries;
 
+use Level23\Druid\Types\Granularity;
 use Level23\Druid\Types\SortingOrder;
 use Level23\Druid\Context\QueryContext;
 use Level23\Druid\Filters\FilterInterface;
 use Level23\Druid\Responses\SearchQueryResponse;
 use Level23\Druid\Collections\IntervalCollection;
+use Level23\Druid\DataSources\DataSourceInterface;
 use Level23\Druid\SearchFilters\SearchFilterInterface;
 
 class SearchQuery implements QueryInterface
 {
-    /**
-     * @var string
-     */
-    protected $dataSource;
+    protected DataSourceInterface $dataSource;
 
-    /**
-     * @var string
-     */
-    protected $granularity;
+    protected Granularity $granularity;
 
-    /**
-     * @var \Level23\Druid\Collections\IntervalCollection
-     */
-    protected $intervals;
+    protected IntervalCollection $intervals;
 
-    /**
-     * @var \Level23\Druid\Filters\FilterInterface|null
-     */
-    protected $filter;
+    protected ?FilterInterface $filter = null;
 
-    /**
-     * @var int|null
-     */
-    protected $limit;
+    protected ?int $limit = null;
 
     /**
      * The dimensions to run the search over. Excluding this means the search is run over all dimensions.
      *
      * @var array|string[]
      */
-    protected $dimensions = [];
+    protected array $dimensions = [];
 
-    /**
-     * @var string
-     */
-    protected $sort = SortingOrder::LEXICOGRAPHIC;
+    protected SortingOrder $sort = SortingOrder::LEXICOGRAPHIC;
 
-    /**
-     * @var \Level23\Druid\Context\QueryContext|null
-     */
-    protected $context;
+    protected ?QueryContext $context = null;
 
-    /**
-     * @var \Level23\Druid\SearchFilters\SearchFilterInterface
-     */
-    protected $searchFilter;
+    protected SearchFilterInterface $searchFilter;
 
     public function __construct(
-        string $dataSource,
-        string $granularity,
+        DataSourceInterface $dataSource,
+        string|Granularity $granularity,
         IntervalCollection $intervals,
         SearchFilterInterface $searchFilter
     ) {
         $this->dataSource   = $dataSource;
-        $this->granularity  = $granularity;
+        $this->granularity  = is_string($granularity) ? Granularity::from(strtolower($granularity)) : $granularity;
         $this->intervals    = $intervals;
         $this->searchFilter = $searchFilter;
     }
 
     /**
-     * Return the query in array format so we can fire it to druid.
+     * Return the query in array format, so we can fire it to druid.
      *
-     * @return array
+     * @return array<string,string|array<mixed>|int>
      */
     public function toArray(): array
     {
         $result = [
             'queryType'   => 'search',
-            'dataSource'  => $this->dataSource,
-            'granularity' => $this->granularity,
+            'dataSource'  => $this->dataSource->toArray(),
+            'granularity' => $this->granularity->value,
             'intervals'   => $this->intervals->toArray(),
-            'sort'        => ['type' => $this->sort],
+            'sort'        => ['type' => $this->sort->value],
             'query'       => $this->searchFilter->toArray(),
         ];
 
@@ -99,8 +77,11 @@ class SearchQuery implements QueryInterface
             $result['searchDimensions'] = $this->dimensions;
         }
 
-        if ($this->context) {
-            $result['context'] = $this->context->toArray();
+        if (isset($this->context)) {
+            $context = $this->context->toArray();
+            if (sizeof($context) > 0) {
+                $result['context'] = $context;
+            }
         }
 
         return $result;
@@ -109,7 +90,7 @@ class SearchQuery implements QueryInterface
     /**
      * Parse the response into something we can return to the user.
      *
-     * @param array $response
+     * @param array<string|int,string|int|array<mixed>> $response
      *
      * @return SearchQueryResponse
      */
@@ -143,11 +124,11 @@ class SearchQuery implements QueryInterface
     }
 
     /**
-     * @param string $sort
+     * @param string|SortingOrder $sort
      */
-    public function setSort(string $sort): void
+    public function setSort(string|SortingOrder $sort): void
     {
-        $this->sort = SortingOrder::validate($sort);
+        $this->sort = is_string($sort) ? SortingOrder::from(strtolower($sort)) : $sort;
     }
 
     /**

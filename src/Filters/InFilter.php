@@ -3,56 +3,38 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Filters;
 
-use Level23\Druid\Extractions\ExtractionInterface;
-
 class InFilter implements FilterInterface
 {
-    /**
-     * @var string
-     */
-    protected $dimension;
+    protected string $dimension;
 
     /**
-     * @var array
+     * @var string[]|int[]
      */
-    protected $values;
-
-    /**
-     * @var \Level23\Druid\Extractions\ExtractionInterface|null
-     */
-    protected $extraction;
+    protected array $values;
 
     /**
      * InFilter constructor.
      *
      * @param string                   $dimension
-     * @param array                    $values
-     * @param ExtractionInterface|null $extraction
+     * @param string[]|int[]           $values
      */
-    public function __construct(string $dimension, array $values, ExtractionInterface $extraction = null)
+    public function __construct(string $dimension, array $values)
     {
         $this->values     = $values;
         $this->dimension  = $dimension;
-        $this->extraction = $extraction;
     }
 
     /**
      * Return the filter as it can be used in the druid query.
      *
-     * @return array
+     * @return array<string,string|array<int|string>|array<string,string|int|bool|array<mixed>>>
      */
     public function toArray(): array
     {
-        $result = [
+        return [
             'type'      => 'in',
             'dimension' => $this->dimension,
             'values'    => array_values($this->values),
         ];
-
-        if ($this->extraction) {
-            $result['extractionFn'] = $this->extraction->toArray();
-        }
-
-        return $result;
     }
 }

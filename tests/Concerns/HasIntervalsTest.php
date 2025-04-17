@@ -12,15 +12,7 @@ use Level23\Druid\Queries\QueryBuilder;
 
 class HasIntervalsTest extends TestCase
 {
-    /**
-     * @var \Level23\Druid\DruidClient
-     */
-    protected $client;
-
-    /**
-     * @var \Level23\Druid\Queries\QueryBuilder
-     */
-    protected $builder;
+    protected QueryBuilder $builder;
 
     public function setUp(): void
     {
@@ -66,7 +58,7 @@ class HasIntervalsTest extends TestCase
     {
         $this->expectException(Exception::class);
         $this->expectExceptionMessage(
-            'DateTime::__construct(): Failed to parse time string (hi) at position 0 (h): The timezone could not be found in the database'
+            'Failed to parse time string (hi) at position 0 (h): The timezone could not be found in the database'
         );
 
         $this->builder->interval('hi', 'bye');

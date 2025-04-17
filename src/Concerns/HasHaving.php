@@ -20,33 +20,30 @@ use Level23\Druid\HavingFilters\DimensionSelectorHavingFilter;
 
 trait HasHaving
 {
-    /**
-     * @var HavingFilterInterface|null
-     */
-    protected $having;
+    protected ?HavingFilterInterface $having = null;
 
     /**
      * Build our "having" part of the query.
      *
      * The operator can be '=', '>', '>=', '<', '<=', '<>', '!=' or 'like'
      *
-     * @param string|HavingFilterInterface|Closure $havingOrMetricOrClosure
-     * @param string|null|int                      $operator
-     * @param string|null|int                      $value
-     * @param string                               $boolean
+     * @param Closure|string|FilterInterface|HavingFilterInterface $havingOrMetricOrClosure
+     * @param float|string|null                                    $operator
+     * @param float|string|null|bool                               $value
+     * @param string                                               $boolean
      *
      * @return $this
      */
     public function having(
-        $havingOrMetricOrClosure,
-        $operator = null,
-        $value = null,
-        $boolean = 'and'
-    ) {
+        Closure|string|HavingFilterInterface|FilterInterface $havingOrMetricOrClosure,
+        float|string|null $operator = null,
+        float|string|bool|null $value = null,
+        string $boolean = 'and'
+    ): self {
         $having = null;
 
         if ($value === null && $operator !== null) {
-            $value    = $operator;
+            $value = $operator;
             $operator = '=';
         }
 
@@ -83,7 +80,7 @@ trait HasHaving
             $having = $havingOrMetricOrClosure;
         } elseif ($havingOrMetricOrClosure instanceof Closure) {
 
-            // lets create a bew builder object where the user can mess around with
+            // let's create a bew builder object where the user can mess around with
             $obj = new HavingBuilder();
 
             // call the user function
@@ -105,14 +102,17 @@ trait HasHaving
     /**
      * Add a having filter
      *
-     * @param string|HavingFilterInterface|Closure $havingOrMetricOrClosure
-     * @param string|null                          $operator
-     * @param string|null                          $value
+     * @param Closure|string|HavingFilterInterface $havingOrMetricOrClosure
+     * @param float|string|null                    $operator
+     * @param float|string|null                    $value
      *
      * @return $this
      */
-    public function orHaving($havingOrMetricOrClosure, $operator = null, $value = null)
-    {
+    public function orHaving(
+        Closure|HavingFilterInterface|string $havingOrMetricOrClosure,
+        float|string|null $operator = null,
+        float|string|null $value = null
+    ): self {
         return $this->having($havingOrMetricOrClosure, $operator, $value, 'or');
     }
 

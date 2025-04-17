@@ -9,10 +9,14 @@ use Level23\Druid\DruidClient;
 use Level23\Druid\Types\DataType;
 use Level23\Druid\Context\TaskContext;
 use Level23\Druid\Concerns\HasInterval;
+use Level23\Druid\Concerns\HasInputFormat;
 use Level23\Druid\Concerns\HasAggregations;
 use Level23\Druid\Concerns\HasTuningConfig;
 use Level23\Druid\Transforms\TransformSpec;
+use Level23\Druid\Dimensions\TimestampSpec;
+use Level23\Druid\Types\MultiValueHandling;
 use Level23\Druid\Transforms\TransformBuilder;
+use Level23\Druid\Dimensions\SpatialDimension;
 use Level23\Druid\Concerns\HasQueryGranularity;
 use Level23\Druid\InputSources\DruidInputSource;
 use Level23\Druid\Collections\IntervalCollection;
@@ -20,145 +24,167 @@ use Level23\Druid\Concerns\HasSegmentGranularity;
 use Level23\Druid\Collections\TransformCollection;
 use Level23\Druid\Granularities\UniformGranularity;
 use Level23\Druid\Collections\AggregationCollection;
+use Level23\Druid\InputSources\InputSourceInterface;
+use Level23\Druid\InputFormats\InputFormatInterface;
 use Level23\Druid\Granularities\ArbitraryGranularity;
+use Level23\Druid\Collections\SpatialDimensionCollection;
 
 class IndexTaskBuilder extends TaskBuilder
 {
-    use HasSegmentGranularity, HasQueryGranularity, HasInterval, HasTuningConfig, HasAggregations;
+    use HasSegmentGranularity, HasQueryGranularity, HasInterval, HasTuningConfig, HasAggregations, HasInputFormat;
 
     /**
-     * @var array
+     * @var array<array<string,string|bool>>
      */
-    protected $dimensions = [];
+    protected array $dimensions = [];
 
-    /**
-     * @var bool
-     */
-    protected $append = false;
+    protected SpatialDimensionCollection $spatialDimensions;
 
     /**
      * The data source where we will write to.
      *
      * @var string
      */
-    protected $dataSource;
+    protected string $dataSource;
+
+    protected ?InputSourceInterface $inputSource;
+
+    protected bool $rollup = false;
 
     /**
-     * @var string|null
-     */
-    protected $inputSourceType;
-
-    /**
-     * @var bool
-     */
-    protected $rollup = false;
-
-    /**
-     * Whether or not this task should be executed parallel.
+     * Whether this task should be executed parallel.
      *
      * @var bool
      */
-    protected $parallel = false;
+    protected bool $parallel = false;
 
-    /**
-     * @var TransformSpec|null
-     */
-    protected $transformSpec;
+    protected ?TransformSpec $transformSpec = null;
+
+    protected ?TimestampSpec $timestampSpec = null;
 
     /**
      * Here we remember which type of granularity we want.
-     * By default this is UniformGranularity.
+     * By default, this is UniformGranularity.
      *
      * @var string
      */
-    protected $granularityType = UniformGranularity::class;
+    protected string $granularityType = UniformGranularity::class;
 
-    /**
-     * The data source where the data will be read from.
-     * This will only be used in case of IngestSegmentFirehose.
-     *
-     * @var string
-     */
-    protected $fromDataSource;
+    protected ?InputFormatInterface $inputFormat = null;
+
+    protected bool $appendToExisting = false;
 
     /**
      * IndexTaskBuilder constructor.
      *
-     * @param \Level23\Druid\DruidClient $client
-     * @param string                     $toDataSource    Data source where the data will be imported in.
-     * @param string|null                $inputSourceType The type of InputSource to use (where to retrieve the data
-     *                                                    from).
+     * @param DruidClient               $druidClient
+     * @param string                    $toDataSource Data source where the data will be imported in.
+     * @param InputSourceInterface|null $inputSource
      */
-    public function __construct(DruidClient $client, string $toDataSource, string $inputSourceType = null)
-    {
-        $this->client          = $client;
-        $this->dataSource      = $toDataSource;
-        $this->inputSourceType = $inputSourceType;
+    public function __construct(
+        DruidClient $druidClient,
+        string $toDataSource,
+        ?InputSourceInterface $inputSource = null
+    ) {
+        $this->client            = $druidClient;
+        $this->dataSource        = $toDataSource;
+        $this->inputSource       = $inputSource;
+        $this->spatialDimensions = new SpatialDimensionCollection();
     }
 
     /**
      * Add a dimension.
      *
-     * @param string $name
-     * @param string $type
+     * @param string          $name
+     * @param string|DataType $type
      *
      * @return $this
      */
-    public function dimension(string $name, $type = DataType::STRING): IndexTaskBuilder
+    public function dimension(string $name, string|DataType $type = DataType::STRING): IndexTaskBuilder
     {
-        $this->dimensions[] = ['name' => $name, 'type' => DataType::validate($type)];
+        $this->dimensions[] = [
+            'name' => $name,
+            'type' => (is_string($type) ? DataType::from(strtolower($type)) : $type)->value,
+        ];
 
         return $this;
     }
 
     /**
-     * Enable append mode. When this is set, we will add the data retrieved from the firehose to the segments, instead
-     * of overwriting the data in the segments.
+     * Add a multi-value dimension.
+     *
+     * @param string                    $name
+     * @param string|DataType           $type
+     * @param string|MultiValueHandling $multiValueHandling $type
+     * @param bool                      $createBitmapIndex
      *
      * @return $this
      */
-    public function append(): IndexTaskBuilder
-    {
-        $this->append = true;
+    public function multiValueDimension(
+        string $name,
+        string|DataType $type = DataType::STRING,
+        string|MultiValueHandling $multiValueHandling = MultiValueHandling::SORTED_ARRAY,
+        bool $createBitmapIndex = true
+    ): IndexTaskBuilder {
+        $this->dimensions[] = [
+            'name'               => $name,
+            'type'               => (is_string($type) ? DataType::from(strtolower($type)) : $type)->value,
+            'multiValueHandling' => (is_string($multiValueHandling) ? MultiValueHandling::from(strtoupper($multiValueHandling)) : $multiValueHandling)->value,
+            'createBitmapIndex'  => $createBitmapIndex,
+        ];
 
         return $this;
     }
 
     /**
-     * The data source where the data will be read from. This will only be used in case of IngestSegmentFirehose.
+     * Add a spatial dimension.
      *
-     * @param string $fromDataSource
+     * @param string   $name Name of the dimension.
+     * @param string[] $dims Field names where latitude,longitude data are read from.
      *
      * @return $this
      */
-    public function fromDataSource(string $fromDataSource)
+    public function spatialDimension(string $name, array $dims): IndexTaskBuilder
     {
-        $this->fromDataSource = $fromDataSource;
+        $this->spatialDimensions->add(new SpatialDimension($name, $dims));
 
         return $this;
     }
 
     /**
-     * The data source where the data will be read from. This will only be used in case of IngestSegmentFirehose.
-     *
-     * @param string $fromDataSource
+     * @param string      $column       Input row field to read the primary timestamp from. Regardless of the name of
+     *                                  this input field, the primary timestamp will always be stored as a column named
+     *                                  __time in your Druid datasource.
+     * @param string      $format       Timestamp format. Options are:
+     *                                  - iso: ISO8601 with 'T' separator, like "2000-01-01T01:02:03.456"
+     *                                  - posix: seconds since epoch
+     *                                  - millis: milliseconds since epoch
+     *                                  - micro: microseconds since epoch
+     *                                  - nano: nanoseconds since epoch
+     *                                  - auto: automatically detects ISO (either 'T' or space separator) or millis
+     *                                  format
+     *                                  - any Joda DateTimeFormat string
+     * @param null|string $missingValue Timestamp to use for input records that have a null or missing timestamp
+     *                                  column. Should be in ISO8601 format, like "2000-01-01T01:02:03.456", even if
+     *                                  you have specified something else for format. Since Druid requires a primary
+     *                                  timestamp, this setting can be useful for ingesting datasets that do not have
+     *                                  any per-record timestamps at all.
      *
      * @return $this
-     * @deprecated Use fromDataSource() instead
-     *
      */
-    public function setFromDataSource(string $fromDataSource)
+    public function timestamp(string $column, string $format, ?string $missingValue = null): IndexTaskBuilder
     {
-        return $this->fromDataSource($fromDataSource);
+        $this->timestampSpec = new TimestampSpec($column, $format, $missingValue);
+
+        return $this;
     }
 
     /**
-     * @param \Level23\Druid\Context\TaskContext|array $context
+     * @param \Level23\Druid\Context\TaskContext|array<string,string|int|bool> $context
      *
      * @return \Level23\Druid\Tasks\TaskInterface
-     * @throws \Level23\Druid\Exceptions\QueryResponseException
      */
-    protected function buildTask($context): TaskInterface
+    protected function buildTask(array|TaskContext $context): TaskInterface
     {
         if (is_array($context)) {
             $context = new TaskContext($context);
@@ -172,7 +198,11 @@ class IndexTaskBuilder extends TaskBuilder
             throw new InvalidArgumentException('You have to specify an interval!');
         }
 
-        if ($this->granularityType == ArbitraryGranularity::class) {
+        if ($this->timestampSpec === null) {
+            throw new InvalidArgumentException('You have to specify an timestamp column!');
+        }
+
+        if ($this->granularityType === ArbitraryGranularity::class) {
             $granularity = new ArbitraryGranularity(
                 $this->queryGranularity,
                 $this->rollup,
@@ -191,39 +221,39 @@ class IndexTaskBuilder extends TaskBuilder
             );
         }
 
-        switch ($this->inputSourceType) {
-            case DruidInputSource::class:
-                $fromDataSource = $this->fromDataSource ?? $this->dataSource;
+        // No input source known?
+        if (!isset($this->inputSource)) {
+            throw new InvalidArgumentException(
+                'No InputSource known. You have to supply an input source!.'
+            );
+        }
 
-                // First, validate the given from and to. Make sure that these
-                // match the beginning and end of an interval.
-                $properties = $context->toArray();
-                if (empty($properties['skipIntervalValidation'])) {
-                    $this->validateInterval($fromDataSource, $this->interval);
-                }
-
-                $inputSource = new DruidInputSource($fromDataSource, $this->interval);
-                break;
-
-            default:
-                throw new InvalidArgumentException(
-                    'No InputSource known. Currently we only support re-indexing (DruidInputSource).'
-                );
+        // Do we want to read data from duid? And no interval set yet? Then fill it. We assume this is a reindex task.
+        if ($this->inputSource instanceof DruidInputSource && $this->inputSource->getInterval() === null) {
+            $this->inputSource->setInterval($this->interval);
         }
 
         $task = new IndexTask(
             $this->dataSource,
-            $inputSource,
+            $this->inputSource,
             $granularity,
+            $this->timestampSpec,
             $this->transformSpec,
             $this->tuningConfig,
             $context,
             new AggregationCollection(... $this->aggregations),
-            $this->dimensions
+            $this->dimensions,
+            $this->taskId,
+            $this->inputFormat,
+            $this->spatialDimensions
         );
 
         if ($this->parallel) {
             $task->setParallel($this->parallel);
+        }
+
+        if ($this->appendToExisting) {
+            $task->setAppendToExisting($this->appendToExisting);
         }
 
         return $task;
@@ -234,7 +264,7 @@ class IndexTaskBuilder extends TaskBuilder
      * specify a transform which needs to be applied when this indexing job is executed. Optionally you can
      * also specify a filter on which records this transform needs to be applied.
      *
-     * Note: calling this method more then once will overwrite the previous data!
+     * Note: calling this method more than once will overwrite the previous data!
      *
      * @param \Closure $transformBuilder
      *
@@ -270,9 +300,23 @@ class IndexTaskBuilder extends TaskBuilder
     }
 
     /**
-     * Execute this index task as parallel batch.
+     * @param \Level23\Druid\InputSources\InputSourceInterface $inputSource
+     *
+     * @return \Level23\Druid\Tasks\IndexTaskBuilder
      */
-    public function parallel()
+    public function inputSource(InputSourceInterface $inputSource): IndexTaskBuilder
+    {
+        $this->inputSource = $inputSource;
+
+        return $this;
+    }
+
+    /**
+     * Execute this index task as parallel batch.
+     *
+     * @return \Level23\Druid\Tasks\IndexTaskBuilder
+     */
+    public function parallel(): IndexTaskBuilder
     {
         $this->parallel = true;
 
@@ -299,6 +343,23 @@ class IndexTaskBuilder extends TaskBuilder
     public function arbitraryGranularity(): IndexTaskBuilder
     {
         $this->granularityType = ArbitraryGranularity::class;
+
+        return $this;
+    }
+
+    /**
+     * Creates segments as additional shards of the latest version, effectively appending to the segment set instead of
+     * replacing it. This means that you can append new segments to any datasource regardless of its original
+     * partitioning scheme. You must use the dynamic partitioning type for the appended segments. If you specify a
+     * different partitioning type, the task fails with an error.
+     *
+     * @param bool $appendToExisting
+     *
+     * @return \Level23\Druid\Tasks\IndexTaskBuilder
+     */
+    public function appendToExisting(bool $appendToExisting = true): IndexTaskBuilder
+    {
+        $this->appendToExisting = $appendToExisting;
 
         return $this;
     }

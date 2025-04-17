@@ -3,20 +3,22 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Tests\Filters;
 
-use InvalidArgumentException;
+use ValueError;
 use Level23\Druid\Tests\TestCase;
 use Level23\Druid\Types\SortingOrder;
 use Level23\Druid\Filters\BoundFilter;
-use Level23\Druid\Extractions\LookupExtraction;
 
 class BoundFilterTest extends TestCase
 {
-    public function dataProvider(): array
+    /**
+     * @return array<array<string|null|bool|float>>
+     */
+    public static function dataProvider(): array
     {
         $fields      = ['name'];
         $values      = ['18', 'foo'];
         $operators   = ['>', '>=', '<', '<='];
-        $orderings   = SortingOrder::values();
+        $orderings   = SortingOrder::cases();
         $orderings[] = null;
 
         $result = [];
@@ -25,7 +27,7 @@ class BoundFilterTest extends TestCase
             foreach ($values as $value) {
                 foreach ($operators as $operator) {
                     foreach ($orderings as $ordering) {
-                        $result[] = [$dimension, $operator, $value, $ordering];
+                        $result[] = [$dimension, $operator, $value, $ordering?->value];
                     }
                 }
             }
@@ -42,7 +44,7 @@ class BoundFilterTest extends TestCase
      * @param string      $value
      * @param string|null $ordering
      */
-    public function testFilter(string $dimension, string $operator, string $value, string $ordering = null): void
+    public function testFilter(string $dimension, string $operator, string $value, ?string $ordering = null): void
     {
         $filter = new BoundFilter($dimension, $operator, $value, $ordering);
 
@@ -69,41 +71,20 @@ class BoundFilterTest extends TestCase
                 break;
         }
 
-        $expected['ordering'] = $ordering ?: (is_numeric($value) ? SortingOrder::NUMERIC : SortingOrder::LEXICOGRAPHIC);
+        $expected['ordering'] = $ordering ?: (
+            is_numeric($value)
+                ? SortingOrder::NUMERIC->value
+                : SortingOrder::LEXICOGRAPHIC->value
+        );
 
         $this->assertEquals($expected, $filter->toArray());
     }
 
     public function testInvalidOperator(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid operator given');
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage('"is" is not a valid backing value for enum Level23\Druid\Types\BoundOperator');
 
         new BoundFilter('age', 'is', '18');
-    }
-
-    public function testExtractionFunction(): void
-    {
-        $extractionFunction = new LookupExtraction(
-            'age_by_member', false
-        );
-
-        $filter = new BoundFilter(
-            'member_id',
-            '>',
-            '18',
-            SortingOrder::ALPHANUMERIC,
-            $extractionFunction
-        );
-
-        $this->assertEquals([
-            'type'         => 'bound',
-            'dimension'    => 'member_id',
-            'ordering'     => 'alphanumeric',
-            'lower'        => 18,
-            'lowerStrict'  => true,
-            'extractionFn' => $extractionFunction->toArray(),
-        ], $filter->toArray()
-        );
     }
 }

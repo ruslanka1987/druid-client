@@ -3,46 +3,27 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Tasks;
 
+use Level23\Druid\Types\Granularity;
 use Level23\Druid\Context\TaskContext;
 use Level23\Druid\TuningConfig\TuningConfig;
 use Level23\Druid\Interval\IntervalInterface;
+use Level23\Druid\TuningConfig\TuningConfigInterface;
 
 class CompactTask implements TaskInterface
 {
-    /**
-     * @var string
-     */
-    protected $dataSource;
+    protected string $dataSource;
 
-    /**
-     * @var \Level23\Druid\Interval\IntervalInterface
-     */
-    protected $interval;
+    protected IntervalInterface $interval;
 
-    /**
-     * @var string|null
-     */
-    protected $segmentGranularity;
+    protected ?Granularity $segmentGranularity;
 
-    /**
-     * @var \Level23\Druid\TuningConfig\TuningConfigInterface|null
-     */
-    protected $tuningConfig;
+    protected ?TuningConfigInterface $tuningConfig;
 
-    /**
-     * @var \Level23\Druid\Context\TaskContext|null
-     */
-    protected $context;
+    protected ?TaskContext $context;
 
-    /**
-     * @var int|null
-     */
-    protected $targetCompactionSizeBytes;
+    protected ?int $targetCompactionSizeBytes;
 
-    /**
-     * @var string|null
-     */
-    protected $taskId;
+    protected ?string $taskId;
 
     /**
      * CompactTask constructor.
@@ -62,7 +43,7 @@ class CompactTask implements TaskInterface
      *
      * @param string                                        $dataSource
      * @param \Level23\Druid\Interval\IntervalInterface     $interval
-     * @param null|string                                   $segmentGranularity
+     * @param string|Granularity|null                       $segmentGranularity
      * @param \Level23\Druid\TuningConfig\TuningConfig|null $tuningConfig
      * @param \Level23\Druid\Context\TaskContext|null       $context
      * @param int|null                                      $targetCompactionSizeBytes
@@ -71,15 +52,15 @@ class CompactTask implements TaskInterface
     public function __construct(
         string $dataSource,
         IntervalInterface $interval,
-        $segmentGranularity = null,
-        TuningConfig $tuningConfig = null,
-        TaskContext $context = null,
-        int $targetCompactionSizeBytes = null,
-        string $taskId = null
+        string|Granularity|null $segmentGranularity = null,
+        ?TuningConfig $tuningConfig = null,
+        ?TaskContext $context = null,
+        ?int $targetCompactionSizeBytes = null,
+        ?string $taskId = null
     ) {
         $this->dataSource                = $dataSource;
         $this->interval                  = $interval;
-        $this->segmentGranularity        = $segmentGranularity;
+        $this->segmentGranularity        = is_string($segmentGranularity) ? Granularity::from(strtolower($segmentGranularity)) : $segmentGranularity;
         $this->tuningConfig              = $tuningConfig;
         $this->context                   = $context;
         $this->targetCompactionSizeBytes = $targetCompactionSizeBytes;
@@ -89,7 +70,7 @@ class CompactTask implements TaskInterface
     /**
      * Return the task in a format so that we can send it to druid.
      *
-     * @return array
+     * @return array<string,int|null|string|array<string,string|int|bool|array<string,string|int>>>
      */
     public function toArray(): array
     {
@@ -114,7 +95,7 @@ class CompactTask implements TaskInterface
         }
 
         if ($this->segmentGranularity) {
-            $result['segmentGranularity'] = $this->segmentGranularity;
+            $result['segmentGranularity'] = $this->segmentGranularity->value;
         }
 
         if ($this->tuningConfig instanceof TuningConfig) {

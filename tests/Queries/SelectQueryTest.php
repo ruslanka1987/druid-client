@@ -10,6 +10,7 @@ use Level23\Druid\Queries\SelectQuery;
 use Level23\Druid\Context\QueryContext;
 use Level23\Druid\Dimensions\Dimension;
 use Level23\Druid\Filters\SelectorFilter;
+use Level23\Druid\DataSources\TableDataSource;
 use Level23\Druid\Responses\SelectQueryResponse;
 use Level23\Druid\Collections\IntervalCollection;
 use Level23\Druid\Collections\DimensionCollection;
@@ -18,9 +19,10 @@ class SelectQueryTest extends TestCase
 {
     /**
      * @testWith [[], false]
+     *           [["field"], true]
      *
-     * @param array $metrics
-     * @param bool  $descending
+     * @param string[] $metrics
+     * @param bool     $descending
      *
      * @throws \Exception
      */
@@ -37,8 +39,10 @@ class SelectQueryTest extends TestCase
 
         $threshold = 5;
 
+        $dataSource = new TableDataSource('myDataSource');
+
         $query = new SelectQuery(
-            'myDataSource',
+            $dataSource,
             $intervalCollection,
             $threshold,
             $dimensions,
@@ -48,12 +52,12 @@ class SelectQueryTest extends TestCase
 
         $expected = [
             'queryType'   => 'select',
-            'dataSource'  => 'myDataSource',
+            'dataSource'  => $dataSource->toArray(),
             'intervals'   => $intervalCollection->toArray(),
             'descending'  => $descending,
             'dimensions'  => $dimensions->toArray(),
             'metrics'     => $metrics,
-            'granularity' => Granularity::ALL,
+            'granularity' => Granularity::ALL->value,
             'pagingSpec'  => [
                 'pagingIdentifiers' => null,
                 'threshold'         => $threshold,
@@ -77,7 +81,7 @@ class SelectQueryTest extends TestCase
         $this->assertEquals($expected, $query->toArray());
 
         $query->setGranularity(Granularity::DAY);
-        $expected['granularity'] = Granularity::DAY;
+        $expected['granularity'] = Granularity::DAY->value;
         $this->assertEquals($expected, $query->toArray());
 
         $identifier = [

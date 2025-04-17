@@ -23,7 +23,7 @@ class TuningConfigTest extends TestCase
         $properties = [];
 
         foreach ($methods as $method) {
-            if (substr($method, 0, 3) != 'set') {
+            if (!str_starts_with($method, 'set')) {
                 continue;
             }
 
@@ -82,7 +82,7 @@ class TuningConfigTest extends TestCase
         $this->assertEquals(1, $data['something']);
     }
 
-    protected function getRandomWord()
+    protected function getRandomWord(): string
     {
         $characters   = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $randomString = '';

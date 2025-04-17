@@ -11,92 +11,62 @@ use Level23\Druid\Context\ContextInterface;
 use Level23\Druid\Collections\IntervalCollection;
 use Level23\Druid\Responses\GroupByQueryResponse;
 use Level23\Druid\Collections\DimensionCollection;
+use Level23\Druid\DataSources\DataSourceInterface;
+use Level23\Druid\Aggregations\AggregatorInterface;
 use Level23\Druid\Collections\AggregationCollection;
 use Level23\Druid\Collections\VirtualColumnCollection;
 use Level23\Druid\HavingFilters\HavingFilterInterface;
 use Level23\Druid\Collections\PostAggregationCollection;
+use Level23\Druid\PostAggregations\PostAggregatorInterface;
 
 class GroupByQuery implements QueryInterface
 {
-    /**
-     * @var string
-     */
-    protected $dataSource;
+    protected DataSourceInterface $dataSource;
+
+    protected DimensionCollection $dimensions;
+
+    protected Granularity $granularity;
+
+    protected ?FilterInterface $filter = null;
+
+    protected ?AggregationCollection $aggregations = null;
+
+    protected ?PostAggregationCollection $postAggregations = null;
+
+    protected ?VirtualColumnCollection $virtualColumns = null;
+
+    protected ?HavingFilterInterface $having = null;
+
+    protected ?ContextInterface $context = null;
+
+    protected ?Limit $limit = null;
+
+    protected IntervalCollection $intervals;
 
     /**
-     * @var \Level23\Druid\Collections\DimensionCollection
+     * @var array<array<string>>
      */
-    protected $dimensions;
-
-    /**
-     * @var string
-     */
-    protected $granularity;
-
-    /**
-     * @var \Level23\Druid\Filters\FilterInterface|null
-     */
-    protected $filter;
-
-    /**
-     * @var \Level23\Druid\Collections\AggregationCollection|null
-     */
-    protected $aggregations;
-
-    /**
-     * @var \Level23\Druid\Collections\PostAggregationCollection|null
-     */
-    protected $postAggregations;
-
-    /**
-     * @var \Level23\Druid\Collections\VirtualColumnCollection|null
-     */
-    protected $virtualColumns;
-
-    /**
-     * @var \Level23\Druid\HavingFilters\HavingFilterInterface|null
-     */
-    protected $having;
-
-    /**
-     * @var \Level23\Druid\Context\ContextInterface|null
-     */
-    protected $context;
-
-    /**
-     * @var \Level23\Druid\Limits\LimitInterface|null
-     */
-    protected $limit;
-
-    /**
-     * @var \Level23\Druid\Collections\IntervalCollection
-     */
-    protected $intervals;
-
-    /**
-     * @var array
-     */
-    protected $subtotals = [];
+    protected array $subtotals = [];
 
     /**
      * GroupByQuery constructor.
      *
-     * @param string                                         $dataSource
-     * @param \Level23\Druid\Collections\DimensionCollection $dimensions
-     * @param \Level23\Druid\Collections\IntervalCollection  $intervals
-     * @param null|array|AggregationCollection               $aggregations
-     * @param string                                         $granularity
+     * @param DataSourceInterface                                   $dataSource
+     * @param \Level23\Druid\Collections\DimensionCollection        $dimensions
+     * @param \Level23\Druid\Collections\IntervalCollection         $intervals
+     * @param AggregationCollection|array<AggregatorInterface>|null $aggregations
+     * @param string|Granularity                                    $granularity
      */
     public function __construct(
-        string $dataSource,
+        DataSourceInterface $dataSource,
         DimensionCollection $dimensions,
         IntervalCollection $intervals,
-        $aggregations = null,
-        $granularity = 'all'
+        array|AggregationCollection|null $aggregations = null,
+        string|Granularity $granularity = 'all'
     ) {
         $this->dataSource  = $dataSource;
         $this->dimensions  = $dimensions;
-        $this->granularity = Granularity::validate($granularity);
+        $this->granularity = is_string($granularity) ? Granularity::from(strtolower($granularity)) : $granularity;
         $this->intervals   = $intervals;
 
         if ($aggregations) {
@@ -105,18 +75,18 @@ class GroupByQuery implements QueryInterface
     }
 
     /**
-     * Return the query in array format so we can fire it to druid.
+     * Return the query in array format, so we can fire it to druid.
      *
-     * @return array
+     * @return array<string,string|array<mixed>>
      */
     public function toArray(): array
     {
         $query = [
             'queryType'   => 'groupBy',
-            'dataSource'  => $this->dataSource,
+            'dataSource'  => $this->dataSource->toArray(),
             'intervals'   => $this->intervals->toArray(),
             'dimensions'  => $this->dimensions->toArray(),
-            'granularity' => $this->granularity,
+            'granularity' => $this->granularity->value,
         ];
 
         if ($this->filter) {
@@ -139,8 +109,11 @@ class GroupByQuery implements QueryInterface
             $query['having'] = $this->having->toArray();
         }
 
-        if ($this->context) {
-            $query['context'] = $this->context->toArray();
+        if (isset($this->context)) {
+            $context = $this->context->toArray();
+            if (sizeof($context) > 0) {
+                $query['context'] = $context;
+            }
         }
 
         if ($this->limit) {
@@ -157,15 +130,15 @@ class GroupByQuery implements QueryInterface
     /**
      * @param \Level23\Druid\Filters\FilterInterface $filter
      */
-    public function setFilter(FilterInterface $filter)
+    public function setFilter(FilterInterface $filter): void
     {
         $this->filter = $filter;
     }
 
     /**
-     * @param \Level23\Druid\Collections\AggregationCollection|array $aggregations
+     * @param \Level23\Druid\Collections\AggregationCollection|array<AggregatorInterface> $aggregations
      */
-    public function setAggregations($aggregations)
+    public function setAggregations(array|AggregationCollection $aggregations): void
     {
         if (is_array($aggregations)) {
             $aggregations = new AggregationCollection(...$aggregations);
@@ -175,9 +148,9 @@ class GroupByQuery implements QueryInterface
     }
 
     /**
-     * @param \Level23\Druid\Collections\PostAggregationCollection|array $postAggregations
+     * @param \Level23\Druid\Collections\PostAggregationCollection|array<PostAggregatorInterface> $postAggregations
      */
-    public function setPostAggregations($postAggregations)
+    public function setPostAggregations(PostAggregationCollection|array $postAggregations): void
     {
         if (is_array($postAggregations)) {
             $postAggregations = new PostAggregationCollection(...$postAggregations);
@@ -189,7 +162,7 @@ class GroupByQuery implements QueryInterface
     /**
      * @param \Level23\Druid\HavingFilters\HavingFilterInterface $having
      */
-    public function setHaving(HavingFilterInterface $having)
+    public function setHaving(HavingFilterInterface $having): void
     {
         $this->having = $having;
     }
@@ -197,15 +170,15 @@ class GroupByQuery implements QueryInterface
     /**
      * @param \Level23\Druid\Context\ContextInterface $context
      */
-    public function setContext(ContextInterface $context)
+    public function setContext(ContextInterface $context): void
     {
         $this->context = $context;
     }
 
     /**
-     * @param \Level23\Druid\Limits\LimitInterface|int $limit
+     * @param \Level23\Druid\Limits\Limit|int $limit
      */
-    public function setLimit($limit)
+    public function setLimit(Limit|int $limit): void
     {
         if ($limit instanceof LimitInterface) {
             $this->limit = $limit;
@@ -224,7 +197,7 @@ class GroupByQuery implements QueryInterface
      *
      * @param int $offset
      */
-    public function setOffset(int $offset)
+    public function setOffset(int $offset): void
     {
         if (!$this->limit) {
             $this->limit = new Limit();
@@ -235,7 +208,7 @@ class GroupByQuery implements QueryInterface
     /**
      * Parse the response into something we can return to the user.
      *
-     * @param array $response
+     * @param array<string|int,string|int|array<mixed>> $response
      *
      * @return GroupByQueryResponse
      */
@@ -253,7 +226,7 @@ class GroupByQuery implements QueryInterface
     }
 
     /**
-     * @param array $subtotals
+     * @param array<array<string>> $subtotals
      */
     public function setSubtotals(array $subtotals): void
     {

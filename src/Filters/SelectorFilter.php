@@ -3,59 +3,35 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Filters;
 
-use Level23\Druid\Extractions\ExtractionInterface;
-
 class SelectorFilter implements FilterInterface
 {
-    /**
-     * @var string
-     */
-    protected $dimension;
+    protected string $dimension;
 
-    /**
-     * @var string
-     */
-    protected $value;
-
-    /**
-     * @var \Level23\Druid\Extractions\ExtractionInterface|null
-     */
-    protected $extractionFunction;
+    protected ?string $value;
 
     /**
      * InFilter constructor.
      *
-     * @param string                   $dimension
-     * @param string                   $value
-     * @param ExtractionInterface|null $extractionFunction
+     * @param string      $dimension
+     * @param string|null $value
      */
-    public function __construct(
-        string $dimension,
-        string $value,
-        ExtractionInterface $extractionFunction = null
-    ) {
-        $this->value              = $value;
-        $this->dimension          = $dimension;
-        $this->extractionFunction = $extractionFunction;
+    public function __construct(string $dimension, ?string $value)
+    {
+        $this->value     = $value;
+        $this->dimension = $dimension;
     }
 
     /**
      * Return the filter as it can be used in the druid query.
      *
-     * @return array
+     * @return array<string,string|null|array<string,string|int|bool|array<mixed>>>
      */
     public function toArray(): array
     {
-        $result = [
+        return [
             'type'      => 'selector',
             'dimension' => $this->dimension,
             'value'     => $this->value,
         ];
-
-        if ($this->extractionFunction) {
-            $result['extractionFn'] = $this->extractionFunction->toArray();
-        }
-
-        return $result;
     }
 }

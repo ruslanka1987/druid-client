@@ -10,6 +10,7 @@ use Level23\Druid\Filters\FilterInterface;
 use Level23\Druid\Responses\SelectQueryResponse;
 use Level23\Druid\Collections\IntervalCollection;
 use Level23\Druid\Collections\DimensionCollection;
+use Level23\Druid\DataSources\DataSourceInterface;
 
 /**
  * Class SelectQuery
@@ -25,60 +26,34 @@ use Level23\Druid\Collections\DimensionCollection;
  */
 class SelectQuery implements QueryInterface
 {
-    /**
-     * @var string
-     */
-    protected $dataSource;
+    protected DataSourceInterface $dataSource;
 
-    /**
-     * @var \Level23\Druid\Collections\IntervalCollection
-     */
-    protected $intervals;
+    protected IntervalCollection $intervals;
 
-    /**
-     * @var bool
-     */
-    protected $descending = false;
+    protected bool $descending = false;
 
-    /**
-     * @var \Level23\Druid\Filters\FilterInterface|null
-     */
-    protected $filter;
+    protected ?FilterInterface $filter = null;
 
-    /**
-     * @var \Level23\Druid\Collections\DimensionCollection|null
-     */
-    protected $dimensions;
+    protected ?DimensionCollection $dimensions = null;
 
-    /**
-     * @var string
-     */
-    protected $granularity = Granularity::ALL;
+    protected Granularity $granularity = Granularity::ALL;
 
     /**
      * @var array|string[]
      */
-    protected $metrics;
+    protected array $metrics;
 
-    /**
-     * @var \Level23\Druid\Context\QueryContext|null
-     */
-    protected $context;
+    protected ?QueryContext $context = null;
 
-    /**
-     * @var int
-     */
-    protected $threshold;
+    protected int $threshold;
 
-    /**
-     * @var array|null
-     */
-    protected $pagingIdentifier;
+    /** @var array<string,int>|null */
+    protected ?array $pagingIdentifier = null;
 
     /**
      * SelectQuery constructor.
      *
-     * @param string                   $dataSource A String or Object defining the data source to query, very similar
+     * @param DataSourceInterface      $dataSource A DataSourceInterface defining the data source to query, very similar
      *                                             to a table in a relational database.
      * @param IntervalCollection       $intervals  This defines the time ranges to run the query over.
      * @param int                      $threshold  The threshold determines how many hits are returned, with each hit
@@ -93,10 +68,10 @@ class SelectQuery implements QueryInterface
      *                                             will be negative value.
      */
     public function __construct(
-        string $dataSource,
+        DataSourceInterface $dataSource,
         IntervalCollection $intervals,
         int $threshold,
-        DimensionCollection $dimensions = null,
+        ?DimensionCollection $dimensions = null,
         array $metrics = [],
         bool $descending = false
     ) {
@@ -109,28 +84,31 @@ class SelectQuery implements QueryInterface
     }
 
     /**
-     * Return the query in array format so we can fire it to druid.
+     * Return the query in array format, so we can fire it to druid.
      *
-     * @return array
+     * @return array<string,string|array<mixed>|bool>
      */
     public function toArray(): array
     {
         $result = [
             'queryType'   => 'select',
-            'dataSource'  => $this->dataSource,
+            'dataSource'  => $this->dataSource->toArray(),
             'intervals'   => $this->intervals->toArray(),
             'descending'  => $this->descending,
             'dimensions'  => $this->dimensions ? $this->dimensions->toArray() : [],
             'metrics'     => $this->metrics,
-            'granularity' => $this->granularity,
+            'granularity' => $this->granularity->value,
             'pagingSpec'  => [
                 'pagingIdentifiers' => $this->pagingIdentifier,
                 'threshold'         => $this->threshold,
             ],
         ];
 
-        if ($this->context) {
-            $result['context'] = $this->context->toArray();
+        if (isset($this->context)) {
+            $context = $this->context->toArray();
+            if (sizeof($context) > 0) {
+                $result['context'] = $context;
+            }
         }
 
         if ($this->filter) {
@@ -143,7 +121,7 @@ class SelectQuery implements QueryInterface
     /**
      * Parse the response into something we can return to the user.
      *
-     * @param array $response
+     * @param array<string|int,string|int|array<mixed>> $response
      *
      * @return SelectQueryResponse
      */
@@ -163,13 +141,13 @@ class SelectQuery implements QueryInterface
     /**
      * Defines the granularity of the query. Default is Granularity.ALL.
      *
-     * @param string $granularity
+     * @param string|Granularity $granularity
      *
      * @throws InvalidArgumentException
      */
-    public function setGranularity(string $granularity): void
+    public function setGranularity(string|Granularity $granularity): void
     {
-        $this->granularity = Granularity::validate($granularity);
+        $this->granularity = is_string($granularity) ? Granularity::from(strtolower($granularity)) : $granularity;
     }
 
     /**
@@ -182,7 +160,7 @@ class SelectQuery implements QueryInterface
 
     /**
      *
-     * @param array $pagingIdentifier
+     * @param array<string,int> $pagingIdentifier
      */
     public function setPagingIdentifier(array $pagingIdentifier): void
     {

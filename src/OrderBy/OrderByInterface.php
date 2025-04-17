@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 namespace Level23\Druid\OrderBy;
 
+use Level23\Druid\Types\OrderByDirection;
+
 interface OrderByInterface
 {
     /**
      * Return the order by in array format so that it can be used in a druid query.
      *
-     * @return array
+     * @return array<string,string>
      */
     public function toArray(): array;
 
@@ -22,7 +24,7 @@ interface OrderByInterface
     /**
      * Return the direction of the order by
      *
-     * @return string
+     * @return OrderByDirection
      */
-    public function getDirection(): string;
+    public function getDirection(): OrderByDirection;
 }

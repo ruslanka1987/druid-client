@@ -8,7 +8,10 @@ use Level23\Druid\Aggregations\DistinctCountAggregator;
 
 class DistinctCountAggregatorTest extends TestCase
 {
-    public function dataProvider(): array
+    /**
+     * @return array<array<string|int|null>>
+     */
+    public static function dataProvider(): array
     {
         return [
             ['dimension', 'abc', 32768],
@@ -23,7 +26,7 @@ class DistinctCountAggregatorTest extends TestCase
      *
      * @dataProvider dataProvider
      */
-    public function testAggregator(string $dimension, string $outputName, int $size = null): void
+    public function testAggregator(string $dimension, string $outputName, ?int $size = null): void
     {
         if ($size) {
             $aggregator = new DistinctCountAggregator($dimension, $outputName, $size);
