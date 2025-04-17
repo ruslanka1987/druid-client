@@ -8,7 +8,7 @@ class RegexSearchFilter implements SearchFilterInterface
     /**
      * @var string
      */
-    protected string $pattern;
+    protected $pattern;
 
     /**
      * RegexSearchFilter constructor.

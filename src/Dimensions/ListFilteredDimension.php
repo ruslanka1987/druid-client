@@ -5,14 +5,14 @@ namespace Level23\Druid\Dimensions;
 
 class ListFilteredDimension implements DimensionInterface
 {
-    protected Dimension $dimension;
+    protected $dimension;
 
     /**
      * @var string[]
      */
-    protected array $values;
+    protected $values;
 
-    protected bool $isWhitelist;
+    protected $isWhitelist;
 
     /**
      * RegexFilteredDimension constructor.

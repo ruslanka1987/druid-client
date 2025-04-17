@@ -10,7 +10,7 @@ class CombineInputSource implements InputSourceInterface
     /**
      * @var \Level23\Druid\InputSources\InputSourceInterface[]
      */
-    protected array $inputSources;
+    protected $inputSources;
 
     /**
      * @param array<\Level23\Druid\InputSources\InputSourceInterface> $inputSources
@@ -35,7 +35,9 @@ class CombineInputSource implements InputSourceInterface
         return [
             'type'      => 'combining',
             'delegates' => array_map(
-                fn(InputSourceInterface $inputSource) => $inputSource->toArray(),
+                function (InputSourceInterface $inputSource) {
+                    return $inputSource->toArray();
+                },
                 $this->inputSources
             ),
         ];

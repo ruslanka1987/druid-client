@@ -17,7 +17,7 @@ trait HasInputFormat
     /**
      * @var \Level23\Druid\InputFormats\InputFormatInterface|null
      */
-    protected ?InputFormatInterface $inputFormat = null;
+    protected $inputFormat = null;
 
     /**
      * Specify that we use JSON as input format.

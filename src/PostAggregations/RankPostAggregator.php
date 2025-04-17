@@ -5,11 +5,11 @@ namespace Level23\Druid\PostAggregations;
 
 class RankPostAggregator implements PostAggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected PostAggregatorInterface $dimension;
+    protected $dimension;
 
-    protected float $value;
+    protected $value;
 
     /**
      * QuantilePostAggregator constructor.

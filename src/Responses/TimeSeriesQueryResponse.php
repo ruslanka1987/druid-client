@@ -5,7 +5,7 @@ namespace Level23\Druid\Responses;
 
 class TimeSeriesQueryResponse extends QueryResponse
 {
-    protected string $timeOutputName;
+    protected $timeOutputName;
 
     /**
      * TimeSeriesQueryResponse constructor.

@@ -5,7 +5,7 @@ namespace Level23\Druid\DataSources;
 
 class LookupDataSource implements DataSourceInterface
 {
-    protected string $lookupName;
+    protected $lookupName;
 
     public function __construct(string $lookupName)
     {

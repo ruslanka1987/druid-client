@@ -5,9 +5,9 @@ namespace Level23\Druid\Dimensions;
 
 class RegexFilteredDimension implements DimensionInterface
 {
-    protected Dimension $dimension;
+    protected $dimension;
 
-    protected string $regex;
+    protected $regex;
 
     /**
      * RegexFilteredDimension constructor.

@@ -95,7 +95,6 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
      * @return null|T
      * @since 5.0.0
      */
-    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->items[$offset] ?? null;
@@ -116,7 +115,6 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
      * @return void
      * @since 5.0.0
      */
-    #[ReturnTypeWillChange]
     public function offsetSet($offset, $value): void
     {
         $type = $this->getType();
@@ -143,7 +141,6 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
      * @return void
      * @since 5.0.0
      */
-    #[ReturnTypeWillChange]
     public function offsetUnset($offset): void
     {
         unset($this->items[$offset]);

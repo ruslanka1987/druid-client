@@ -12,7 +12,7 @@ namespace Level23\Druid\Filters;
  */
 class ExpressionFilter implements FilterInterface
 {
-    protected string $expression;
+    protected $expression;
 
     /**
      * @param string $expression

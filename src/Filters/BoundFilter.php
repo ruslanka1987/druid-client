@@ -16,13 +16,13 @@ use Level23\Druid\Types\BoundOperator;
  */
 class BoundFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
-    protected BoundOperator $operator;
+    protected $operator;
 
-    protected string $value;
+    protected $value;
 
-    protected SortingOrder $ordering;
+    protected $ordering;
 
     /**
      * BoundFilter constructor.
@@ -37,9 +37,9 @@ class BoundFilter implements FilterInterface
      */
     public function __construct(
         string $dimension,
-        string|BoundOperator $operator,
+        $operator,
         string $value,
-        string|SortingOrder|null $ordering = null
+        $ordering = null
     ) {
         if(is_string($ordering)) {
             $ordering = SortingOrder::from(strtolower($ordering));

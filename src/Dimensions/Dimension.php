@@ -54,7 +54,7 @@ class Dimension implements DimensionInterface
         return [
             'type'       => 'default',
             'dimension'  => $this->dimension,
-            'outputType' => $this->outputType->value,
+            'outputType' => $this->outputType,
             'outputName' => $this->outputName,
         ];
     }

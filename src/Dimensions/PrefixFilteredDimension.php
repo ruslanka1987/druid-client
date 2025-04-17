@@ -5,9 +5,9 @@ namespace Level23\Druid\Dimensions;
 
 class PrefixFilteredDimension implements DimensionInterface
 {
-    protected Dimension $dimension;
+    protected $dimension;
 
-    protected string $prefix;
+    protected $prefix;
 
     /**
      * PrefixFilteredDimension constructor.

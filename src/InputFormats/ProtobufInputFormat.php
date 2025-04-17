@@ -8,9 +8,9 @@ class ProtobufInputFormat implements InputFormatInterface
     /**
      * @var array<string,string>
      */
-    protected array $protoBytesDecoder;
+    protected $protoBytesDecoder;
 
-    protected ?FlattenSpec $flattenSpec;
+    protected $flattenSpec;
 
     /**
      *

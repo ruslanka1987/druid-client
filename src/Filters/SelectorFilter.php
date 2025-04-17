@@ -5,9 +5,9 @@ namespace Level23\Druid\Filters;
 
 class SelectorFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
-    protected ?string $value;
+    protected $value;
 
     /**
      * InFilter constructor.

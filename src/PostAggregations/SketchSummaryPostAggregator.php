@@ -5,9 +5,9 @@ namespace Level23\Druid\PostAggregations;
 
 class SketchSummaryPostAggregator implements PostAggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected PostAggregatorInterface $dimension;
+    protected $dimension;
 
     /**
      * QuantilePostAggregator constructor.

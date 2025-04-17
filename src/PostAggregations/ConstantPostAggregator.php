@@ -5,9 +5,9 @@ namespace Level23\Druid\PostAggregations;
 
 class ConstantPostAggregator implements PostAggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected float $numericValue;
+    protected $numericValue;
 
     /**
      * ConstantPostAggregator constructor.

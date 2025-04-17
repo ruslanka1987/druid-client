@@ -7,14 +7,14 @@ use InvalidArgumentException;
 
 class LocalInputSource implements InputSourceInterface
 {
-    protected ?string $baseDir;
+    protected $baseDir;
 
     /**
      * @var string[]
      */
-    protected array $files;
+    protected $files;
 
-    protected ?string $filter;
+    protected $filter;
 
     /**
      * @param string[]    $files

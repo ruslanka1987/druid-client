@@ -10,7 +10,7 @@ class ConsoleTable
     /**
      * @var array<string,int>
      */
-    protected array $columns = [];
+    protected $columns = [];
 
     /**
      * @param array<int|string, string|int|array<string|int, array<mixed>|int|string>> $data

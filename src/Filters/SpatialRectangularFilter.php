@@ -10,17 +10,17 @@ namespace Level23\Druid\Filters;
  */
 class SpatialRectangularFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
     /**
      * @var float[]
      */
-    protected array $minCoords;
+    protected $minCoords;
 
     /**
      * @var float[]
      */
-    protected array $maxCoords;
+    protected $maxCoords;
 
     /**
      * SpatialRectangularFilter constructor.

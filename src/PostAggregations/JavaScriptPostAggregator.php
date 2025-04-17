@@ -7,11 +7,11 @@ use Level23\Druid\Collections\PostAggregationCollection;
 
 class JavaScriptPostAggregator implements PostAggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected PostAggregationCollection $fields;
+    protected $fields;
 
-    protected string $javascriptFunction;
+    protected $javascriptFunction;
 
     /**
      * JavaScriptPostAggregator constructor.

@@ -3,13 +3,33 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Types;
 
+use InvalidArgumentException;
+
 /**
- * Enum JoinType
+ * Class NullHandling
  *
  * @package Level23\Druid\Types
  */
-enum JoinType: string
+class JoinType extends Enum
 {
-    case INNER = 'INNER';
-    case LEFT  = 'LEFT';
+    public const INNER = 'INNER';
+    public const LEFT = 'LEFT';
+
+    /**
+     * @param string $nullHandling
+     *
+     * @return string
+     * @throws InvalidArgumentException
+     */
+    public static function validate($nullHandling)
+    {
+        if (!MultiValueHandling::isValidValue($nullHandling)) {
+            throw new InvalidArgumentException(
+                'The given NullHandling value is invalid: ' . $nullHandling . '. ' .
+                'Allowed are: ' . implode(',', MultiValueHandling::values())
+            );
+        }
+
+        return $nullHandling;
+    }
 }

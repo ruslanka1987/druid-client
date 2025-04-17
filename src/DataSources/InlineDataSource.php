@@ -8,12 +8,12 @@ class InlineDataSource implements DataSourceInterface
     /**
      * @var string[]
      */
-    protected array $columnNames;
+    protected $columnNames;
 
     /**
      * @var array<scalar[]>
      */
-    protected array $rows;
+    protected $rows;
 
     /**
      * @param string[]        $columnNames

@@ -8,27 +8,42 @@ namespace Level23\Druid\Lookups\ParseSpecs;
  */
 class TsvParseSpec implements ParseSpecInterface
 {
+    protected $columns;
+    protected $keyColumn = null;
+    protected $valueColumn = null;
+    protected $delimiter = null;
+    protected $listDelimiter = null;
+    protected $hasHeaderRow = false;
+    protected $skipHeaderRows = 0;
+
     /**
      * Specify the TSV parse spec.
      *
      * @param array<int,string>|null $columns
-     * @param string|null            $keyColumn
-     * @param string|null            $valueColumn
-     * @param string|null            $delimiter
-     * @param string|null            $listDelimiter
-     * @param bool                   $hasHeaderRow
-     * @param int                    $skipHeaderRows
+     * @param string|null $keyColumn
+     * @param string|null $valueColumn
+     * @param string|null $delimiter
+     * @param string|null $listDelimiter
+     * @param bool $hasHeaderRow
+     * @param int $skipHeaderRows
      */
     public function __construct(
-        protected null|array $columns,
-        protected ?string $keyColumn = null,
-        protected ?string $valueColumn = null,
-        protected ?string $delimiter = null,
-        protected ?string $listDelimiter = null,
-        protected bool $hasHeaderRow = false,
-        protected int $skipHeaderRows = 0
-    ) {
-
+        $columns,
+        $keyColumn = null,
+        $valueColumn = null,
+        $delimiter = null,
+        $listDelimiter = null,
+        $hasHeaderRow = false,
+        $skipHeaderRows = 0
+    )
+    {
+        $this->columns = $columns;
+        $this->keyColumn = $keyColumn;
+        $this->valueColumn = $valueColumn;
+        $this->delimiter = $delimiter;
+        $this->listDelimiter = $listDelimiter;
+        $this->hasHeaderRow = $hasHeaderRow;
+        $this->skipHeaderRows = $skipHeaderRows;
     }
 
     /**
@@ -37,8 +52,8 @@ class TsvParseSpec implements ParseSpecInterface
     public function toArray(): array
     {
         $response = [
-            'format'       => 'tsv',
-            'columns'      => $this->columns,
+            'format' => 'tsv',
+            'columns' => $this->columns,
             'hasHeaderRow' => $this->hasHeaderRow,
         ];
 

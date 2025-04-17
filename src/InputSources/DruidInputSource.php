@@ -13,9 +13,9 @@ class DruidInputSource implements InputSourceInterface
 {
     use HasFilter, HasInterval;
 
-    protected string $dataSource;
+    protected $dataSource;
 
-    protected ?IntervalInterface $interval = null;
+    protected $interval = null;
 
     /**
      * @return \Level23\Druid\Interval\IntervalInterface|null

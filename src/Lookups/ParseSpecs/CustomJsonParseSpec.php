@@ -8,17 +8,21 @@ namespace Level23\Druid\Lookups\ParseSpecs;
  */
 class CustomJsonParseSpec implements ParseSpecInterface
 {
+    protected $keyFieldName;
+    protected $valueFieldName;
+
     /**
      * Specify the parse specification to be a json file.
      *
-     * @param string $keyFieldName   The field name of the key
+     * @param string $keyFieldName The field name of the key
      * @param string $valueFieldName The field name of the value
      */
     public function __construct(
-        protected string $keyFieldName,
-        protected string $valueFieldName,
-    ) {
-
+        $keyFieldName, $valueFieldName
+    )
+    {
+        $this->keyFieldName = $keyFieldName;
+        $this->valueFieldName = $valueFieldName;
     }
 
     /**
@@ -27,8 +31,8 @@ class CustomJsonParseSpec implements ParseSpecInterface
     public function toArray(): array
     {
         return [
-            'format'         => 'customJson',
-            'keyFieldName'   => $this->keyFieldName,
+            'format' => 'customJson',
+            'keyFieldName' => $this->keyFieldName,
             'valueFieldName' => $this->valueFieldName,
         ];
     }

@@ -21,11 +21,11 @@ use Level23\Druid\Dimensions\DimensionInterface;
  */
 class ColumnComparisonFilter implements FilterInterface
 {
-    protected DimensionInterface $dimensionA;
+    protected $dimensionA;
 
-    protected DimensionInterface $dimensionB;
+    protected $dimensionB;
 
-    protected string $value;
+    protected $value;
 
     /**
      * ColumnComparisonFilter constructor.

@@ -18,7 +18,7 @@ class BoundFilterTest extends TestCase
         $fields      = ['name'];
         $values      = ['18', 'foo'];
         $operators   = ['>', '>=', '<', '<='];
-        $orderings   = SortingOrder::cases();
+        $orderings   = SortingOrder::getConstants();
         $orderings[] = null;
 
         $result = [];
@@ -27,7 +27,7 @@ class BoundFilterTest extends TestCase
             foreach ($values as $value) {
                 foreach ($operators as $operator) {
                     foreach ($orderings as $ordering) {
-                        $result[] = [$dimension, $operator, $value, $ordering?->value];
+                        $result[] = [$dimension, $operator, $value, $ordering];
                     }
                 }
             }
@@ -73,8 +73,8 @@ class BoundFilterTest extends TestCase
 
         $expected['ordering'] = $ordering ?: (
             is_numeric($value)
-                ? SortingOrder::NUMERIC->value
-                : SortingOrder::LEXICOGRAPHIC->value
+                ? SortingOrder::NUMERIC
+                : SortingOrder::LEXICOGRAPHIC
         );
 
         $this->assertEquals($expected, $filter->toArray());

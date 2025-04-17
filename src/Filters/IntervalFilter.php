@@ -20,12 +20,12 @@ use Level23\Druid\Interval\IntervalInterface;
  */
 class IntervalFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
     /**
      * @var array|\Level23\Druid\Interval\IntervalInterface[]
      */
-    protected array $intervals;
+    protected $intervals;
 
     /**
      * IntervalFilter constructor.

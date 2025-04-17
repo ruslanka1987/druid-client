@@ -8,9 +8,9 @@ class FragmentSearchFilter implements SearchFilterInterface
     /**
      * @var string[]
      */
-    protected array $values;
+    protected $values;
 
-    protected bool $caseSensitive;
+    protected $caseSensitive;
 
     /**
      * FragmentSearchFilter constructor.

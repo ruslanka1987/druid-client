@@ -10,17 +10,17 @@ namespace Level23\Druid\Filters;
  */
 class SpatialPolygonFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
     /**
      * @var float[]
      */
-    protected array $abscissa;
+    protected $abscissa;
 
     /**
      * @var float[]
      */
-    protected array $ordinate;
+    protected $ordinate;
 
     /**
      * SpatialPolygonFilter constructor.

@@ -11,7 +11,7 @@ class FilterBuilder
     /**
      * @var null|\Level23\Druid\Queries\QueryBuilder
      */
-    protected ?QueryBuilder $query = null;
+    protected $query = null;
 
     use HasFilter;
 

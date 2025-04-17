@@ -15,41 +15,41 @@ use Level23\Druid\Collections\SpatialDimensionCollection;
 
 class IndexTask implements TaskInterface
 {
-    protected ?TuningConfig $tuningConfig;
+    protected $tuningConfig;
 
-    protected ?TaskContext $context;
+    protected $context;
 
-    protected bool $appendToExisting = false;
+    protected $appendToExisting = false;
 
-    protected InputSourceInterface $inputSource;
+    protected $inputSource;
 
-    protected string $dateSource;
+    protected $dateSource;
 
-    protected GranularityInterface $granularity;
+    protected $granularity;
 
-    protected ?TransformSpec $transformSpec;
+    protected $transformSpec;
 
-    protected ?AggregationCollection $aggregations;
+    protected $aggregations;
 
     /**
      * @var array<array<string,string|bool>>
      */
-    protected array $dimensions = [];
+    protected $dimensions = [];
 
     /**
      * Whether this task should be executed parallel.
      *
      * @var bool
      */
-    protected bool $parallel = false;
+    protected $parallel = false;
 
-    protected ?string $taskId;
+    protected $taskId;
 
-    protected ?InputFormatInterface $inputFormat;
+    protected $inputFormat;
 
-    protected TimestampSpec $timestampSpec;
+    protected $timestampSpec;
 
-    protected ?SpatialDimensionCollection $spatialDimensions = null;
+    protected $spatialDimensions = null;
 
     /**
      * IndexTask constructor.
@@ -111,14 +111,14 @@ class IndexTask implements TaskInterface
                     'dimensionsSpec'  => [
                         'dimensions' => $this->dimensions,
                     ],
-                    'metricsSpec'     => ($this->aggregations?->toArray()),
+                    'metricsSpec'     => (isset($this->aggregations) ? $this->aggregations->toArray() : null),
                     'granularitySpec' => $this->granularity->toArray(),
-                    'transformSpec'   => ($this->transformSpec?->toArray()),
+                    'transformSpec'   => (isset($this->transformSpec) ? $this->transformSpec->toArray() : null),
                 ],
                 'ioConfig'   => [
                     'type'             => $this->parallel ? 'index_parallel' : 'index',
                     'inputSource'      => $this->inputSource->toArray(),
-                    'inputFormat'      => $this->inputFormat?->toArray(),
+                    'inputFormat'      => isset($this->inputFormat) ? $this->inputFormat->toArray() : null,
                     'appendToExisting' => $this->appendToExisting,
                 ],
             ],

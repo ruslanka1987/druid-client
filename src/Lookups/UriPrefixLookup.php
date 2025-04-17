@@ -11,11 +11,19 @@ use Level23\Druid\Lookups\ParseSpecs\ParseSpecInterface;
  */
 class UriPrefixLookup implements LookupInterface
 {
+    protected $parseSpec;
+    protected $uriPrefix;
+    protected $fileRegex = null;
+    protected $pollPeriod = null;
+    protected $maxHeapPercentage = null;
+    protected $injective = false;
+    protected $firstCacheTimeoutMs = 0;
+
     /**
      * @param ParseSpecInterface $parseSpec
-     * @param string             $uriPrefix
-     * @param string|null        $fileRegex
-     * @param string|null        $pollPeriod          The pollPeriod value specifies the period in ISO 8601 format
+     * @param string $uriPrefix
+     * @param string|null $fileRegex
+     * @param string|null $pollPeriod The pollPeriod value specifies the period in ISO 8601 format
      *                                                between checks for replacement data for the lookup. For example
      *                                                PT15M. When not given, it is only once. If the source of the
      *                                                lookup is capable of providing a timestamp, the lookup will only
@@ -25,30 +33,37 @@ class UriPrefixLookup implements LookupInterface
      *                                                occurs, the updating system will look for a file with the most
      *                                                recent timestamp and assume that one with the most recent data
      *                                                set, replacing the local cache of the lookup data.
-     * @param int|null           $maxHeapPercentage
-     * @param bool               $injective           If the underlying map is injective (keys and values are unique)
+     * @param int|null $maxHeapPercentage
+     * @param bool $injective If the underlying map is injective (keys and values are unique)
      *                                                then optimizations can occur internally by setting this to true
-     * @param int                $firstCacheTimeoutMs How long to wait (in ms) for the first run of the cache to
+     * @param int $firstCacheTimeoutMs How long to wait (in ms) for the first run of the cache to
      *                                                populate. 0 indicates to not  wait
      *
      */
     public function __construct(
-        protected ParseSpecInterface $parseSpec,
-        protected string $uriPrefix,
-        protected ?string $fileRegex = null,
-        protected ?string $pollPeriod = null,
-        protected ?int $maxHeapPercentage = null,
-        protected bool $injective = false,
-        protected int $firstCacheTimeoutMs = 0
-    ) {
-
+        $parseSpec,
+        $uriPrefix,
+        $fileRegex = null,
+        $pollPeriod = null,
+        $maxHeapPercentage = null,
+        $injective = false,
+        $firstCacheTimeoutMs = 0
+    )
+    {
+        $this->parseSpec = $parseSpec;
+        $this->uriPrefix = $uriPrefix;
+        $this->fileRegex = $fileRegex;
+        $this->pollPeriod = $pollPeriod;
+        $this->maxHeapPercentage = $maxHeapPercentage;
+        $this->injective = $injective;
+        $this->firstCacheTimeoutMs = $firstCacheTimeoutMs;
     }
 
     public function toArray(): array
     {
         $response = [
-            'type'               => 'uri',
-            'uriPrefix'          => $this->uriPrefix,
+            'type' => 'uri',
+            'uriPrefix' => $this->uriPrefix,
             'namespaceParseSpec' => $this->parseSpec->toArray(),
         ];
 
@@ -65,10 +80,10 @@ class UriPrefixLookup implements LookupInterface
         }
 
         return [
-            'type'                => 'cachedNamespace',
+            'type' => 'cachedNamespace',
             'extractionNamespace' => $response,
-            'injective'           => $this->injective,
-            'firstCacheTimeout'   => $this->firstCacheTimeoutMs,
+            'injective' => $this->injective,
+            'firstCacheTimeout' => $this->firstCacheTimeoutMs,
         ];
     }
 }

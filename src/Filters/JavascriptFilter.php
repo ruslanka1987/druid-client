@@ -15,9 +15,9 @@ namespace Level23\Druid\Filters;
  */
 class JavascriptFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
-    protected string $javascriptFunction;
+    protected $javascriptFunction;
 
     /**
      * JavascriptFilter constructor.

@@ -9,20 +9,34 @@ namespace Level23\Druid\Lookups;
  */
 class KafkaLookup implements LookupInterface
 {
+
+    protected $kafkaTopic;
+    protected $servers;
+    protected $kafkaProperties = [];
+    protected $connectTimeout = 0;
+    protected $isOneToOne = false;
+
     /**
-     * @param string                   $kafkaTopic      The Kafka topic to read the data from
+     * @param string $kafkaTopic The Kafka topic to read the data from
      * @param string|array<int,string> $servers
-     * @param array<string,scalar>     $kafkaProperties Kafka consumer properties
-     * @param int                      $connectTimeout  How long to wait for an initial connection
-     * @param bool                     $isOneToOne      The map is a one-to-one (like injective)
+     * @param array<string,scalar> $kafkaProperties Kafka consumer properties
+     * @param int $connectTimeout How long to wait for an initial connection
+     * @param bool $isOneToOne The map is a one-to-one (like injective)
      */
     public function __construct(
-        protected string $kafkaTopic,
-        protected string|array $servers,
-        protected array $kafkaProperties = [],
-        protected int $connectTimeout = 0,
-        protected bool $isOneToOne = false
-    ) {
+        $kafkaTopic,
+        $servers,
+        $kafkaProperties = [],
+        $connectTimeout = 0,
+        $isOneToOne = false
+    )
+    {
+        $this->kafkaTopic = $kafkaTopic;
+        $this->servers = $servers;
+        $this->kafkaProperties = $kafkaProperties;
+        $this->connectTimeout = $connectTimeout;
+        $this->isOneToOne = $isOneToOne;
+
         $this->kafkaProperties['bootstrap.servers'] =
             is_array($this->servers)
                 ? implode(',', $this->servers)
@@ -35,11 +49,11 @@ class KafkaLookup implements LookupInterface
     public function toArray(): array
     {
         return [
-            'type'            => 'kafka',
-            'kafkaTopic'      => $this->kafkaTopic,
+            'type' => 'kafka',
+            'kafkaTopic' => $this->kafkaTopic,
             'kafkaProperties' => $this->kafkaProperties,
-            'connectTimeout'  => $this->connectTimeout,
-            'isOneToOne'      => $this->isOneToOne,
+            'connectTimeout' => $this->connectTimeout,
+            'isOneToOne' => $this->isOneToOne,
         ];
     }
 }

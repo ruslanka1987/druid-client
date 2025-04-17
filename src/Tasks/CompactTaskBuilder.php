@@ -15,9 +15,9 @@ class CompactTaskBuilder extends TaskBuilder
 {
     use HasInterval, HasSegmentGranularity, HasTuningConfig;
 
-    protected string $dataSource;
+    protected $dataSource;
 
-    protected ?int $targetCompactionSizeBytes = null;
+    protected $targetCompactionSizeBytes = null;
 
     /**
      * CompactTaskBuilder constructor.
@@ -45,7 +45,7 @@ class CompactTaskBuilder extends TaskBuilder
      * @throws \Level23\Druid\Exceptions\QueryResponseException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    protected function buildTask(array|TaskContext $context): TaskInterface
+    protected function buildTask($context): TaskInterface
     {
         if (is_array($context)) {
             $context = new TaskContext($context);

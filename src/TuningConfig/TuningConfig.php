@@ -8,7 +8,7 @@ class TuningConfig implements TuningConfigInterface
     /**
      * @var array<string,string|int|bool|array<string,string|int>>
      */
-    protected array $properties = [];
+    protected $properties = [];
 
     /**
      * TuningConfig constructor.

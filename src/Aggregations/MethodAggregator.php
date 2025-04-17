@@ -25,11 +25,11 @@ abstract class MethodAggregator implements AggregatorInterface
     public function __construct(string $metricName, string $outputName = '', $type = DataType::LONG)
     {
         if (is_string($type)) {
-            $type = DataType::from(strtolower($type));
+            $type = DataType::from(strtoupper($type));
         }
         if (!in_array($type, [DataType::LONG, DataType::FLOAT, DataType::DOUBLE])) {
             throw new InvalidArgumentException(
-                'Incorrect type given: ' . $type->value . '. This can either be "long", "float" or "double"'
+                'Incorrect type given: ' . $type . '. This can either be "long", "float" or "double"'
             );
         }
 
@@ -46,7 +46,7 @@ abstract class MethodAggregator implements AggregatorInterface
     public function toArray(): array
     {
         return [
-            'type'      => $this->type->value . ucfirst($this->getMethod()),
+            'type'      => $this->type . ucfirst($this->getMethod()),
             'name'      => $this->outputName,
             'fieldName' => $this->metricName,
         ];

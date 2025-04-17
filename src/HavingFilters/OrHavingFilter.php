@@ -8,7 +8,7 @@ class OrHavingFilter implements HavingFilterInterface, LogicalExpressionHavingFi
     /**
      * @var \Level23\Druid\HavingFilters\HavingFilterInterface[]
      */
-    protected array $filters;
+    protected $filters;
 
     /**
      * AndHavingFilter constructor.
@@ -29,7 +29,9 @@ class OrHavingFilter implements HavingFilterInterface, LogicalExpressionHavingFi
     {
         return [
             'type'        => 'or',
-            'havingSpecs' => array_map(fn(HavingFilterInterface $filter) => $filter->toArray(), $this->filters),
+            'havingSpecs' => array_map(function (HavingFilterInterface $filter) {
+                return $filter->toArray();
+            }, $this->filters),
         ];
     }
 

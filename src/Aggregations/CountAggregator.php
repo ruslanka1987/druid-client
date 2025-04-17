@@ -5,7 +5,7 @@ namespace Level23\Druid\Aggregations;
 
 class CountAggregator implements AggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
     /**
      * CountAggregator constructor.

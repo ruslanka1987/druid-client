@@ -7,13 +7,13 @@ use Level23\Druid\Collections\DimensionCollection;
 
 class CardinalityAggregator implements AggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected bool $byRow;
+    protected $byRow;
 
-    protected bool $round;
+    protected $round;
 
-    protected DimensionCollection $dimensions;
+    protected $dimensions;
 
     /**
      * CardinalityAggregator constructor.

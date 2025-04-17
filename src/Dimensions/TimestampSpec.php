@@ -5,14 +5,14 @@ namespace Level23\Druid\Dimensions;
 
 class TimestampSpec
 {
-    protected string $column;
+    protected $column;
 
-    protected string $format;
+    protected $format;
 
     /**
      * @var string|null
      */
-    protected ?string $missingValue = null;
+    protected $missingValue = null;
 
     public function __construct(string $column, string $format, ?string $missingValue = null)
     {

@@ -5,9 +5,9 @@ namespace Level23\Druid\Aggregations;
 
 class DistinctCountAggregator implements AggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected string $dimension;
+    protected $dimension;
 
     /**
      * Must be a power of 2. Internally, size refers to the maximum number of entries sketch object will retain.
@@ -18,7 +18,7 @@ class DistinctCountAggregator implements AggregatorInterface
      *
      * @var int
      */
-    protected int $size = 16384;
+    protected $size = 16384;
 
     /**
      * CountAggregator constructor.

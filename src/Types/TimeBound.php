@@ -1,16 +1,39 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Level23\Druid\Types;
 
+use InvalidArgumentException;
+
 /**
- * Enum TimeBound
+ * Class SortingOrder
  *
  * @package Level23\Druid\Types
  */
-enum TimeBound: string
+final class TimeBound extends Enum
 {
-    case MAX_TIME = 'maxTime';
-    case MIN_TIME = 'minTime';
-    case BOTH = 'both';
+    public const MAX_TIME = 'maxTime';
+    public const MIN_TIME = 'minTime';
+    public const BOTH = 'both';
+
+    /**
+     * @param string $ordering
+     *
+     * @return string
+     * @throws InvalidArgumentException
+     */
+    public static function validate($ordering)
+    {
+        $ordering = strtolower($ordering);
+
+        if (!TimeBound::isValidValue($ordering)) {
+            throw new InvalidArgumentException(
+                'The given sorting order is invalid: ' . $ordering . '. ' .
+                'Allowed are: ' . implode(',', TimeBound::values())
+            );
+        }
+
+        return $ordering;
+    }
 }

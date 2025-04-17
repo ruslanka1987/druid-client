@@ -8,7 +8,7 @@ class UnionDataSource implements DataSourceInterface
     /**
      * @var string[]
      */
-    protected array $tableNames;
+    protected $tableNames;
 
     /**
      * @param string[] $tableNames

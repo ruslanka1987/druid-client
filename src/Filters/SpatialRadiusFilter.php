@@ -10,14 +10,14 @@ namespace Level23\Druid\Filters;
  */
 class SpatialRadiusFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
     /**
      * @var float[]
      */
-    protected array $coords;
+    protected $coords;
 
-    protected float $radius;
+    protected $radius;
 
     /**
      * SpatialRadiusFilter constructor.

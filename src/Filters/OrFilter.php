@@ -8,7 +8,7 @@ class OrFilter implements FilterInterface, LogicalExpressionFilterInterface
     /**
      * @var \Level23\Druid\Filters\FilterInterface[]
      */
-    protected array $filters;
+    protected $filters;
 
     /**
      * AndFilter constructor.
@@ -37,7 +37,9 @@ class OrFilter implements FilterInterface, LogicalExpressionFilterInterface
     {
         return [
             'type'   => 'or',
-            'fields' => array_map(fn(FilterInterface $filter) => $filter->toArray(), $this->filters),
+            'fields' => array_map(function (FilterInterface $filter) {
+                return $filter->toArray();
+            }, $this->filters),
         ];
     }
 }

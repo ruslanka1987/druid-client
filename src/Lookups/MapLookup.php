@@ -8,12 +8,14 @@ namespace Level23\Druid\Lookups;
  */
 class MapLookup implements LookupInterface
 {
+    protected $map;
+
     /**
      * @param array<int|string|float,int|string|float> $map
      */
-    public function __construct(protected array $map)
+    public function __construct($map)
     {
-
+        $this->map = $map;
     }
 
     public function toArray(): array

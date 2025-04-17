@@ -5,9 +5,9 @@ namespace Level23\Druid\InputFormats;
 
 class OrcInputFormat implements InputFormatInterface
 {
-    protected ?FlattenSpec $flattenSpec;
+    protected $flattenSpec;
 
-    protected ?bool $binaryAsString;
+    protected $binaryAsString;
 
     /**
      * @param FlattenSpec|null $flattenSpec    Specifies flattening configuration for nested ORC data. See flattenSpec

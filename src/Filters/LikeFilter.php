@@ -13,11 +13,11 @@ namespace Level23\Druid\Filters;
  */
 class LikeFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
-    protected string $pattern;
+    protected $pattern;
 
-    protected string $escapeCharacter;
+    protected $escapeCharacter;
 
     /**
      * LikeFilter constructor.

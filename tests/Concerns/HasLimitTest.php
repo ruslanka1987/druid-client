@@ -20,9 +20,9 @@ use Level23\Druid\Collections\OrderByCollection;
 
 class HasLimitTest extends TestCase
 {
-    protected DruidClient $client;
+    protected $client;
 
-    protected QueryBuilder|MockInterface|LegacyMockInterface $builder;
+    protected $builder;
 
     public function setUp(): void
     {
@@ -36,7 +36,7 @@ class HasLimitTest extends TestCase
      *
      * @return LegacyMockInterface|MockInterface
      */
-    protected function getLimitMock(string $class): LegacyMockInterface|MockInterface
+    protected function getLimitMock(string $class)
     {
         $builder = new Mockery\Generator\MockConfigurationBuilder();
         $builder->setInstanceMock(true);

@@ -5,12 +5,12 @@ namespace Level23\Druid\Filters;
 
 class InFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
     /**
      * @var string[]|int[]
      */
-    protected array $values;
+    protected $values;
 
     /**
      * InFilter constructor.

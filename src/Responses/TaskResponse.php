@@ -8,7 +8,7 @@ class TaskResponse extends QueryResponse
     /**
      * @var array<string,array<string,string|int>>
      */
-    protected array $response;
+    protected $response;
 
     /**
      * We will return an array like this:

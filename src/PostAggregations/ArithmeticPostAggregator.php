@@ -8,13 +8,13 @@ use Level23\Druid\Collections\PostAggregationCollection;
 
 class ArithmeticPostAggregator implements PostAggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected ArithmeticFunction $function;
+    protected $function;
 
-    protected PostAggregationCollection $fields;
+    protected $fields;
 
-    protected bool $floatingPointOrdering;
+    protected $floatingPointOrdering;
 
     /**
      * ArithmeticPostAggregator constructor.
@@ -38,7 +38,7 @@ class ArithmeticPostAggregator implements PostAggregatorInterface
      */
     public function __construct(
         string $outputName,
-        string|ArithmeticFunction $function,
+        $function,
         PostAggregationCollection $fields,
         bool $floatingPointOrdering = true
     ) {

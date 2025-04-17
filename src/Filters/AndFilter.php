@@ -8,7 +8,7 @@ class AndFilter implements FilterInterface, LogicalExpressionFilterInterface
     /**
      * @var \Level23\Druid\Filters\FilterInterface[]
      */
-    protected array $filters;
+    protected $filters;
 
     /**
      * AndFilter constructor.
@@ -36,8 +36,10 @@ class AndFilter implements FilterInterface, LogicalExpressionFilterInterface
     public function toArray(): array
     {
         return [
-            'type'   => 'and',
-            'fields' => array_map(fn(FilterInterface $filter) => $filter->toArray(), $this->filters),
+            'type' => 'and',
+            'fields' => array_map(function (FilterInterface $filter) {
+                return $filter->toArray();
+            }, $this->filters),
         ];
     }
 }

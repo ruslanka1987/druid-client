@@ -5,9 +5,9 @@ namespace Level23\Druid\Transforms;
 
 class ExpressionTransform implements TransformInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected string $expression;
+    protected $expression;
 
     /**
      * ExpressionTransform constructor.

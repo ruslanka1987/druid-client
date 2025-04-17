@@ -5,14 +5,14 @@ namespace Level23\Druid\PostAggregations;
 
 class CdfPostAggregator implements PostAggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected PostAggregatorInterface $dimension;
+    protected $dimension;
 
     /**
      * @var float[]
      */
-    protected array $splitPoints;
+    protected $splitPoints;
 
     /**
      * QuantilePostAggregator constructor.

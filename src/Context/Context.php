@@ -10,7 +10,7 @@ abstract class Context
     /**
      * @var array<string,string|int|bool>
      */
-    protected array $properties = [];
+    protected $properties = [];
 
     /**
      * Context constructor.

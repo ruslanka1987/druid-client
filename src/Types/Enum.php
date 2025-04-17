@@ -17,7 +17,7 @@ abstract class Enum
      * @return array
      * @codeCoverageIgnore
      */
-    protected static function getConstants(): array
+    public static function getConstants(): array
     {
         if (self::$constCacheArray == null) {
             self::$constCacheArray = [];
@@ -60,6 +60,6 @@ abstract class Enum
 
     public static function from($value)
     {
-        return self::$value ?? null;
+        return constant('static::'. strtoupper($value)) ?? null;
     }
 }

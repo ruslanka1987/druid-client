@@ -23,9 +23,9 @@ use Level23\Druid\Filters\FilterInterface;
  */
 class FilteredAggregator implements AggregatorInterface
 {
-    protected AggregatorInterface $aggregator;
+    protected $aggregator;
 
-    protected FilterInterface $filter;
+    protected $filter;
 
     /**
      * CountAggregator constructor.

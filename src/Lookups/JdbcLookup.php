@@ -9,6 +9,21 @@ namespace Level23\Druid\Lookups;
  */
 class JdbcLookup implements LookupInterface
 {
+    protected $connectUri;
+        protected $username;
+        protected $password;
+        protected $table;
+        protected $keyColumn;
+        protected $valueColumn;
+        protected $filter = null;
+        protected $tsColumn = null;
+        protected $jitterSeconds = null;
+        protected $loadTimeoutSeconds = null;
+        protected $pollPeriod = null;
+        protected $maxHeapPercentage = null;
+        protected $injective = false;
+        protected $firstCacheTimeoutMs = 0;
+
     /**
      * The JDBC lookups will poll a database to populate its local cache. If the tsColumn is set it must be able to
      * accept comparisons in the format '2015-01-01 00:00:00'. For example, the following must be valid SQL for the
@@ -48,22 +63,35 @@ class JdbcLookup implements LookupInterface
      *                                             0 indicates to not  wait
      */
     public function __construct(
-        protected string $connectUri,
-        protected string|null $username,
-        protected string|null $password,
-        protected string $table,
-        protected string $keyColumn,
-        protected string $valueColumn,
-        protected ?string $filter = null,
-        protected ?string $tsColumn = null,
-        protected ?int $jitterSeconds = null,
-        protected ?int $loadTimeoutSeconds = null,
-        protected null|int|string $pollPeriod = null,
-        protected ?int $maxHeapPercentage = null,
-        protected bool $injective = false,
-        protected int $firstCacheTimeoutMs = 0
+        $connectUri,
+        $username,
+        $password,
+        $table,
+        $keyColumn,
+        $valueColumn,
+        $filter = null,
+        $tsColumn = null,
+        $jitterSeconds = null,
+        $loadTimeoutSeconds = null,
+        $pollPeriod = null,
+        $maxHeapPercentage = null,
+        $injective = false,
+        $firstCacheTimeoutMs = 0
     ) {
-
+        $this->connectUri = $connectUri;
+        $this->username   = $username;
+        $this->password   = $password;
+        $this->table      = $table;
+        $this->keyColumn  = $keyColumn;
+        $this->valueColumn = $valueColumn;
+        $this->filter     = $filter;
+        $this->tsColumn   = $tsColumn;
+        $this->jitterSeconds = $jitterSeconds;
+        $this->loadTimeoutSeconds = $loadTimeoutSeconds;
+        $this->pollPeriod   = $pollPeriod;
+        $this->maxHeapPercentage = $maxHeapPercentage;
+        $this->injective     = $injective;
+        $this->firstCacheTimeoutMs = $firstCacheTimeoutMs;
     }
 
     public function toArray(): array

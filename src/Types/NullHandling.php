@@ -3,14 +3,34 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Types;
 
+use InvalidArgumentException;
+
 /**
- * Enum NullHandling
+ * Class MultiValueHandling
  *
  * @package Level23\Druid\Types
  */
-enum NullHandling: string
+class NullHandling extends Enum
 {
-    case NULL_STRING  = 'nullString';
-    case EMPTY_STRING = 'emptyString';
-    case RETURN_NULL  = 'returnNull';
+    public const NULL_STRING  = 'nullString';
+    public const EMPTY_STRING = 'emptyString';
+    public const RETURN_NULL  = 'returnNull';
+
+    /**
+     * @param string $nullHandling
+     *
+     * @return string
+     * @throws InvalidArgumentException
+     */
+    public static function validate($nullHandling)
+    {
+        if (!NullHandling::isValidValue($nullHandling)) {
+            throw new InvalidArgumentException(
+                'The given NullHandling value is invalid: ' . $nullHandling . '. ' .
+                'Allowed are: ' . implode(',', NullHandling::values())
+            );
+        }
+
+        return $nullHandling;
+    }
 }

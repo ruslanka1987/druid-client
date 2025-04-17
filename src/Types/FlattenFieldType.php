@@ -3,28 +3,34 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Types;
 
+use InvalidArgumentException;
+
 /**
- * Enum FlattenFieldType
+ * Class FlattenFieldType
  *
  * @package Level23\Druid\Types
  */
-enum FlattenFieldType: string
+class FlattenFieldType extends Enum
 {
+    public const ROOT = 'root';
+    public const PATH = 'path';
+    public const JQ = 'jq';
+
     /**
-     * root, referring to a field at the root level of the record. Only really useful if useFieldDiscovery is false.
-     */
-    case ROOT = 'root';
-    /**
-     * referring to a field using JsonPath notation. Supported by most data formats that offer nesting, including avro,
-     * json, orc, and parquet.
+     * @param string $value
      *
-     * @see https://github.com/json-path/JsonPath
+     * @return string
+     * @throws InvalidArgumentException
      */
-    case PATH = 'path';
-    /**
-     * referring to a field using jackson-jq notation. Only supported for the json format
-     *
-     * @see https://github.com/eiiches/jackson-jq
-     */
-    case JQ = 'jq';
+    public static function validate($value)
+    {
+        if (!FlattenFieldType::isValidValue($value)) {
+            throw new InvalidArgumentException(
+                'The given FlattenFieldType value is invalid: ' . $value . '. ' .
+                'Allowed are: ' . implode(',', FlattenFieldType::values())
+            );
+        }
+
+        return $value;
+    }
 }

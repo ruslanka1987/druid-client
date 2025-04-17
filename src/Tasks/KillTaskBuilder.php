@@ -23,7 +23,7 @@ class KillTaskBuilder extends TaskBuilder
     /**
      * @var string
      */
-    protected string $dataSource;
+    protected $dataSource;
 
     /**
      * If markAsUnused is true (default is false), the kill task will first mark any segments within the specified
@@ -31,7 +31,7 @@ class KillTaskBuilder extends TaskBuilder
      *
      * @var bool
      */
-    protected bool $markAsUnused = false;
+    protected $markAsUnused = false;
 
     /**
      * IndexTaskBuilder constructor.
@@ -66,7 +66,7 @@ class KillTaskBuilder extends TaskBuilder
     /**
      * @inheritDoc
      */
-    protected function buildTask(array|TaskContext $context): TaskInterface
+    protected function buildTask($context): TaskInterface
     {
         if ($this->interval === null) {
             throw new InvalidArgumentException('You have to specify an interval!');

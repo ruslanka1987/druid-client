@@ -7,14 +7,14 @@ use Level23\Druid\Types\DataType;
 
 class ArrayContainsFilter implements FilterInterface
 {
-    protected string $column;
+    protected $column;
 
-    protected string|int|float|null $value;
+    protected $value;
 
     /**
      * @var \Level23\Druid\Types\DataType
      */
-    protected DataType $matchValueType;
+    protected $matchValueType;
 
     /**
      * Equality Filter constructor.
@@ -26,7 +26,7 @@ class ArrayContainsFilter implements FilterInterface
      */
     public function __construct(
         string $column,
-        string|int|float|null $value,
+        $value,
         ?DataType $matchValueType = null
     ) {
         if (is_null($matchValueType)) {
@@ -55,7 +55,7 @@ class ArrayContainsFilter implements FilterInterface
         return [
             'type'                  => 'arrayContainsElement',
             'column'                => $this->column,
-            'elementMatchValueType' => $this->matchValueType->value,
+            'elementMatchValueType' => $this->matchValueType,
             'elementMatchValue'     => $this->value,
         ];
     }

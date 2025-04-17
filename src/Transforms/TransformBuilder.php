@@ -12,7 +12,7 @@ class TransformBuilder
     /**
      * @var array|\Level23\Druid\Transforms\TransformInterface[]
      */
-    protected array $transforms = [];
+    protected $transforms = [];
 
     /**
      * Build a new transform.

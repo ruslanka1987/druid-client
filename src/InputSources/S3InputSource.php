@@ -8,7 +8,7 @@ class S3InputSource extends CloudInputSource
     /**
      * @var array<string,string>
      */
-    protected array $properties;
+    protected $properties;
 
     /**
      * S3InputSource constructor.

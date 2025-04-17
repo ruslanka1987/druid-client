@@ -8,13 +8,13 @@ use Level23\Druid\Context\TaskContext;
 
 class KillTask implements TaskInterface
 {
-    protected string $dataSource;
+    protected $dataSource;
 
-    protected ?string $taskId;
+    protected $taskId;
 
-    protected Interval $interval;
+    protected $interval;
 
-    protected ?TaskContext $context;
+    protected $context;
 
     /**
      * If markAsUnused is true (default is false), the kill task will first mark any segments within the specified
@@ -22,7 +22,7 @@ class KillTask implements TaskInterface
      *
      * @var bool
      */
-    protected bool $markAsUnused;
+    protected $markAsUnused;
 
     public function __construct(
         string $dataSource,

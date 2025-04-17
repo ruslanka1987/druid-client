@@ -14,7 +14,7 @@ abstract class TaskBuilder
     /**
      * @var DruidClient
      */
-    protected DruidClient $client;
+    protected $client;
 
     /**
      * The task ID. If this is not explicitly specified, Druid generates the task ID using task type,
@@ -22,7 +22,7 @@ abstract class TaskBuilder
      *
      * @var string|null
      */
-    protected ?string $taskId = null;
+    protected $taskId = null;
 
     /**
      * Check if the given interval is valid for the given dataSource.
@@ -74,7 +74,7 @@ abstract class TaskBuilder
      * @return string
      * @throws \Level23\Druid\Exceptions\QueryResponseException|\GuzzleHttp\Exception\GuzzleException
      */
-    public function execute(array|TaskContext $context = []): string
+    public function execute($context = []): string
     {
         $task = $this->buildTask($context);
 
@@ -90,7 +90,7 @@ abstract class TaskBuilder
      * @throws \Level23\Druid\Exceptions\QueryResponseException
      * @throws \JsonException
      */
-    public function toJson(array|TaskContext $context = []): string
+    public function toJson($context = []): string
     {
         $task = $this->buildTask($context);
 
@@ -107,7 +107,7 @@ abstract class TaskBuilder
      * @return array<string,mixed>
      * @throws \Level23\Druid\Exceptions\QueryResponseException
      */
-    public function toArray(array|TaskContext $context = []): array
+    public function toArray($context = []): array
     {
         $task = $this->buildTask($context);
 
@@ -135,5 +135,5 @@ abstract class TaskBuilder
      * @return \Level23\Druid\Tasks\TaskInterface
      * @throws \Level23\Druid\Exceptions\QueryResponseException
      */
-    abstract protected function buildTask(array|TaskContext $context): TaskInterface;
+    abstract protected function buildTask($context): TaskInterface;
 }

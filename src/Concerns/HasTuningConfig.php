@@ -10,7 +10,7 @@ trait HasTuningConfig
     /**
      * @var TuningConfig|null
      */
-    protected ?TuningConfig $tuningConfig = null;
+    protected $tuningConfig = null;
 
     /**
      * Set the tuning config.
@@ -19,7 +19,7 @@ trait HasTuningConfig
      *
      * @return $this
      */
-    public function tuningConfig(array|TuningConfig $tuningConfig): self
+    public function tuningConfig($tuningConfig): self
     {
         if (!$tuningConfig instanceof TuningConfig) {
             $tuningConfig = new TuningConfig($tuningConfig);

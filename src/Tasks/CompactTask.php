@@ -11,19 +11,19 @@ use Level23\Druid\TuningConfig\TuningConfigInterface;
 
 class CompactTask implements TaskInterface
 {
-    protected string $dataSource;
+    protected $dataSource;
 
-    protected IntervalInterface $interval;
+    protected $interval;
 
-    protected ?Granularity $segmentGranularity;
+    protected $segmentGranularity;
 
-    protected ?TuningConfigInterface $tuningConfig;
+    protected $tuningConfig;
 
-    protected ?TaskContext $context;
+    protected $context;
 
-    protected ?int $targetCompactionSizeBytes;
+    protected $targetCompactionSizeBytes;
 
-    protected ?string $taskId;
+    protected $taskId;
 
     /**
      * CompactTask constructor.
@@ -52,7 +52,7 @@ class CompactTask implements TaskInterface
     public function __construct(
         string $dataSource,
         IntervalInterface $interval,
-        string|Granularity|null $segmentGranularity = null,
+        $segmentGranularity = null,
         ?TuningConfig $tuningConfig = null,
         ?TaskContext $context = null,
         ?int $targetCompactionSizeBytes = null,

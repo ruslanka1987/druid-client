@@ -7,14 +7,14 @@ use Level23\Druid\Types\DataType;
 
 class EqualityFilter implements FilterInterface
 {
-    protected string $column;
+    protected $column;
 
-    protected string|int|float $value;
+    protected $value;
 
     /**
      * @var \Level23\Druid\Types\DataType
      */
-    protected DataType $matchValueType;
+    protected $matchValueType;
 
     /**
      * Equality Filter constructor.
@@ -26,8 +26,8 @@ class EqualityFilter implements FilterInterface
      */
     public function __construct(
         string $column,
-        string|int|float $value,
-        ?DataType $matchValueType = null
+        $value,
+        $matchValueType = null
     ) {
         if (is_null($matchValueType)) {
 
@@ -55,7 +55,7 @@ class EqualityFilter implements FilterInterface
         return [
             'type'           => 'equals',
             'column'         => $this->column,
-            'matchValueType' => $this->matchValueType->value,
+            'matchValueType' => $this->matchValueType,
             'matchValue'     => $this->value,
         ];
     }

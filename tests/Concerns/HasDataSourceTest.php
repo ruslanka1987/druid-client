@@ -21,7 +21,7 @@ use Level23\Druid\DataSources\LookupDataSource;
 
 class HasDataSourceTest extends TestCase
 {
-    protected QueryBuilder|MockInterface|LegacyMockInterface $builder;
+    protected $builder;
 
     public function setUp(): void
     {

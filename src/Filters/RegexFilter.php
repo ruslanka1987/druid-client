@@ -14,9 +14,9 @@ namespace Level23\Druid\Filters;
  */
 class RegexFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
-    protected string $pattern;
+    protected $pattern;
 
     /**
      * RegexFilter constructor.

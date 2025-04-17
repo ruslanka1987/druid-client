@@ -18,15 +18,15 @@ use Level23\Druid\Types\BoundOperator;
  */
 class RangeFilter implements FilterInterface
 {
-    protected string $column;
+    protected $column;
 
-    protected BoundOperator $operator;
+    protected $operator;
 
-    protected string|int|float $value;
+    protected $value;
 
-    protected SortingOrder $ordering;
+    protected $ordering;
 
-    protected DataType $valueType;
+    protected $valueType;
 
     /**
      * BoundFilter constructor.
@@ -44,8 +44,8 @@ class RangeFilter implements FilterInterface
      */
     public function __construct(
         string $column,
-        string|BoundOperator $operator,
-        string|int|float $value,
+        $operator,
+        $value,
         ?DataType $valueType = null
     ) {
         $this->column   = $column;
@@ -76,7 +76,7 @@ class RangeFilter implements FilterInterface
         $result = [
             'type'           => 'range',
             'column'         => $this->column,
-            'matchValueType' => $this->valueType->value,
+            'matchValueType' => $this->valueType,
         ];
 
         switch ($this->operator) {

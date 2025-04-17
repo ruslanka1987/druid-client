@@ -8,23 +8,19 @@ namespace Level23\Druid\Lookups\ParseSpecs;
  */
 class CsvParseSpec implements ParseSpecInterface
 {
-    /**
-     * Specify the CSV parse spec.
-     *
-     * @param array<int,string>|null $columns
-     * @param string|null            $keyColumn
-     * @param string|null            $valueColumn
-     * @param bool                   $hasHeaderRow
-     * @param int                    $skipHeaderRows
-     */
-    public function __construct(
-        protected ?array $columns,
-        protected ?string $keyColumn = null,
-        protected ?string $valueColumn = null,
-        protected bool $hasHeaderRow = false,
-        protected int $skipHeaderRows = 0
-    ) {
+    protected $columns;
+    protected $keyColumn = null;
+    protected $valueColumn = null;
+    protected $hasHeaderRow = false;
+    protected $skipHeaderRows = 0;
 
+    public function __construct($columns, $keyColumn = null, $valueColumn = null, $hasHeaderRow = false, $skipHeaderRows = 0)
+    {
+        $this->columns = $columns;
+        $this->keyColumn = $keyColumn;
+        $this->valueColumn = $valueColumn;
+        $this->hasHeaderRow = $hasHeaderRow;
+        $this->skipHeaderRows = $skipHeaderRows;
     }
 
     /**
@@ -33,7 +29,7 @@ class CsvParseSpec implements ParseSpecInterface
     public function toArray(): array
     {
         $response = [
-            'format'       => 'csv',
+            'format' => 'csv',
             'hasHeaderRow' => $this->hasHeaderRow,
         ];
 

@@ -8,15 +8,15 @@ class SqlInputSource implements InputSourceInterface
     /**
      * @var string[]
      */
-    protected array $sqls;
+    protected $sqls;
 
-    protected bool $foldCase;
+    protected $foldCase;
 
-    protected string $connectURI;
+    protected $connectURI;
 
-    protected string $username;
+    protected $username;
 
-    protected string $password;
+    protected $password;
 
     /**
      * SqlInputSource constructor.

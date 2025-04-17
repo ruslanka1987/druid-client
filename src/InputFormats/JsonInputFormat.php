@@ -8,12 +8,12 @@ class JsonInputFormat implements InputFormatInterface
     /**
      * @var \Level23\Druid\InputFormats\FlattenSpec|null
      */
-    protected ?FlattenSpec $flattenSpec;
+    protected $flattenSpec;
 
     /**
      * @var array<string,bool>
      */
-    protected ?array $features;
+    protected $features;
 
     /**
      * @param FlattenSpec|null        $flattenSpec  Specifies flattening configuration for nested JSON data. See

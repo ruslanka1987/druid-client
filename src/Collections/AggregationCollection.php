@@ -32,6 +32,8 @@ class AggregationCollection extends BaseCollection
      */
     public function toArray(): array
     {
-        return array_map(fn(AggregatorInterface $item) => $item->toArray(), $this->items);
+        return array_map(function (AggregatorInterface $item) {
+            return $item->toArray();
+        }, $this->items);
     }
 }

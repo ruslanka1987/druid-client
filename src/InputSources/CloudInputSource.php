@@ -10,17 +10,17 @@ abstract class CloudInputSource implements InputSourceInterface
     /**
      * @var array<string>
      */
-    protected array $uris;
+    protected $uris;
 
     /**
      * @var array<string>
      */
-    protected array $prefixes;
+    protected $prefixes;
 
     /**
      * @var array<array<string,string>>
      */
-    protected array $objects;
+    protected $objects;
 
     /**
      * S3InputSource constructor.

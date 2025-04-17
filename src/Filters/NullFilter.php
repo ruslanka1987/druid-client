@@ -11,7 +11,7 @@ namespace Level23\Druid\Filters;
  */
 class NullFilter implements FilterInterface
 {
-    protected string $column;
+    protected $column;
 
     /**
      * NullFilter constructor.

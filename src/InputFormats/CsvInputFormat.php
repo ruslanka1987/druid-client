@@ -5,16 +5,16 @@ namespace Level23\Druid\InputFormats;
 
 class CsvInputFormat implements InputFormatInterface
 {
-    protected ?string $listDelimiter;
+    protected $listDelimiter;
 
     /**
      * @var string[]|null
      */
-    protected ?array $columns = null;
+    protected $columns = null;
 
-    protected ?bool $findColumnsFromHeader;
+    protected $findColumnsFromHeader;
 
-    protected int $skipHeaderRows;
+    protected $skipHeaderRows;
 
     /**
      * @param string[]|null $columns               Specifies the columns of the data. The columns should be in the same

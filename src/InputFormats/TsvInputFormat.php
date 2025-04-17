@@ -5,7 +5,7 @@ namespace Level23\Druid\InputFormats;
 
 class TsvInputFormat extends CsvInputFormat
 {
-    protected ?string $delimiter;
+    protected $delimiter;
 
     /**
      * @param array<string>|null $columns               Specifies the columns of the data. The columns should be in the

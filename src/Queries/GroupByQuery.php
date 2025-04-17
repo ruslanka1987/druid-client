@@ -87,7 +87,7 @@ class GroupByQuery implements QueryInterface
             'dataSource'  => $this->dataSource->toArray(),
             'intervals'   => $this->intervals->toArray(),
             'dimensions'  => $this->dimensions->toArray(),
-            'granularity' => $this->granularity->value,
+            'granularity' => $this->granularity,
         ];
 
         if ($this->filter) {

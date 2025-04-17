@@ -17,29 +17,31 @@ use Level23\Druid\Lookups\ParseSpecs\SimpleJsonParseSpec;
  */
 class LookupBuilder
 {
-    protected bool $injective = false;
+    protected $injective = false;
 
-    protected int $firstCacheTimeoutMs = 0;
+    protected $firstCacheTimeoutMs = 0;
 
-    protected int|string|null $pollPeriod = null;
+    protected $pollPeriod = null;
 
-    protected int|null $maxHeapPercentage = null;
+    protected $maxHeapPercentage = null;
 
     /**
      * @var class-string<\Level23\Druid\Lookups\LookupInterface>|null
      */
-    protected ?string $lookupClass = null;
+    protected $lookupClass = null;
 
     /**
      * @var array <int,mixed>
      */
-    protected array $parameters = [];
+    protected $parameters = [];
 
-    protected ?ParseSpecInterface $parseSpec = null;
+    protected $parseSpec = null;
 
-    public function __construct(protected DruidClient $druidClient)
+    protected $druidClient;
+
+    public function __construct($druidClient)
     {
-
+        $this->druidClient = $druidClient;
     }
 
     /**
@@ -275,7 +277,7 @@ class LookupBuilder
      *
      * @return $this
      */
-    public function pollPeriod(int|string $period): self
+    public function pollPeriod($period): self
     {
         $this->pollPeriod = $period;
 
@@ -369,7 +371,7 @@ class LookupBuilder
      */
     public function kafka(
         string $kafkaTopic,
-        string|array $servers,
+        $servers,
         array $kafkaProperties = [],
         int $connectTimeout = 0
     ): LookupBuilder {
@@ -409,8 +411,8 @@ class LookupBuilder
      */
     public function jdbc(
         string $connectUri,
-        string|null $username,
-        string|null $password,
+        $username,
+        $password,
         string $table,
         string $keyColumn,
         string $valueColumn,

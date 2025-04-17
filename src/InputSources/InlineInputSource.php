@@ -7,7 +7,7 @@ use Exception;
 
 class InlineInputSource implements InputSourceInterface
 {
-    protected string $data;
+    protected $data;
 
     /**
      * InlineInputSource constructor.
@@ -39,7 +39,9 @@ class InlineInputSource implements InputSourceInterface
      */
     public static function dataToJson(array $data): string
     {
-        return implode("\n", array_map(fn($elem) => json_encode($elem), $data));
+        return implode("\n", array_map(function ($elem) {
+            return json_encode($elem);
+        }, $data));
     }
 
     /**

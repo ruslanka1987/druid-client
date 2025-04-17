@@ -11,22 +11,30 @@ use Level23\Druid\Lookups\ParseSpecs\ParseSpecInterface;
  */
 class UriLookup implements LookupInterface
 {
+    protected $parseSpec;
+    protected $uri;
+    protected $pollPeriod = null;
+    protected $maxHeapPercentage = null;
+    protected $injective = false;
+    protected $firstCacheTimeoutMs = 0;
+
     public function __construct(
-        protected ParseSpecInterface $parseSpec,
-        protected string $uri,
-        protected null|int|string $pollPeriod = null,
-        protected ?int $maxHeapPercentage = null,
-        protected bool $injective = false,
-        protected int $firstCacheTimeoutMs = 0
-    ) {
+        $parseSpec,
+        $uri,
+        $pollPeriod = null,
+        $maxHeapPercentage = null,
+        $injective = false,
+        $firstCacheTimeoutMs = 0
+    )
+    {
 
     }
 
     public function toArray(): array
     {
         $response = [
-            'type'               => 'uri',
-            'uri'                => $this->uri,
+            'type' => 'uri',
+            'uri' => $this->uri,
             'namespaceParseSpec' => $this->parseSpec->toArray(),
         ];
 
@@ -39,10 +47,10 @@ class UriLookup implements LookupInterface
         }
 
         return [
-            'type'                => 'cachedNamespace',
+            'type' => 'cachedNamespace',
             'extractionNamespace' => $response,
-            'injective'           => $this->injective,
-            'firstCacheTimeout'   => $this->firstCacheTimeoutMs,
+            'injective' => $this->injective,
+            'firstCacheTimeout' => $this->firstCacheTimeoutMs,
         ];
     }
 }

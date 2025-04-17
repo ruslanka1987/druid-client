@@ -10,7 +10,7 @@ class QueryDataSource implements DataSourceInterface
     /**
      * @var \Level23\Druid\Queries\QueryInterface
      */
-    protected QueryInterface $query;
+    protected $query;
 
     /**
      * @param \Level23\Druid\Queries\QueryInterface $query

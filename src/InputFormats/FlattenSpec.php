@@ -8,12 +8,12 @@ use Level23\Druid\Types\FlattenFieldType;
 
 class FlattenSpec
 {
-    protected bool $useFieldDiscovery = true;
+    protected $useFieldDiscovery = true;
 
     /**
      * @var array<array<string,string>>
      */
-    protected array $fields = [];
+    protected $fields = [];
 
     public function __construct(bool $useFieldDiscovery = true)
     {
@@ -36,7 +36,7 @@ class FlattenSpec
      *
      * @return $this
      */
-    public function field(string|FlattenFieldType $flattenFieldType, string $name, ?string $expr = null): self
+    public function field($flattenFieldType, string $name, ?string $expr = null): self
     {
         $type = is_string($flattenFieldType) ? FlattenFieldType::from(strtolower($flattenFieldType)) : $flattenFieldType;
 

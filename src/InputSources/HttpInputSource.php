@@ -8,14 +8,14 @@ class HttpInputSource implements InputSourceInterface
     /**
      * @var string[]
      */
-    protected array $uris;
+    protected $uris;
 
-    protected ?string $username;
+    protected $username;
 
     /**
      * @var null|string|string[]
      */
-    protected string|array|null $password;
+    protected $password;
 
     /**
      * HttpInputSource constructor.
@@ -24,7 +24,7 @@ class HttpInputSource implements InputSourceInterface
      * @param string|null          $username
      * @param string|string[]|null $password
      */
-    public function __construct(array $uris, ?string $username = null, array|string|null $password = null)
+    public function __construct(array $uris, ?string $username = null, $password = null)
     {
         $this->uris     = $uris;
         $this->username = $username;
