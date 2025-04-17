@@ -9,11 +9,11 @@ use Level23\Druid\Collections\PostAggregationCollection;
 
 abstract class MethodPostAggregator implements PostAggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected PostAggregationCollection $fields;
+    protected $fields;
 
-    protected DataType $type;
+    protected $type;
 
     /**
      *  constructor.
@@ -22,7 +22,7 @@ abstract class MethodPostAggregator implements PostAggregatorInterface
      * @param PostAggregationCollection $fields
      * @param string|DataType                    $type
      */
-    public function __construct(string $outputName, PostAggregationCollection $fields, string|DataType $type = DataType::LONG)
+    public function __construct(string $outputName, PostAggregationCollection $fields, $type = DataType::LONG)
     {
         $type = is_string($type)? DataType::from(strtolower($type)) : $type;
         if (!in_array($type, [DataType::LONG, DataType::DOUBLE])) {

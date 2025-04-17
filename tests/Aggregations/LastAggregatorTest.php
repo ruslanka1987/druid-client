@@ -16,10 +16,10 @@ class LastAggregatorTest extends TestCase
     public static function dataProvider(): array
     {
         return [
-            [DataType::LONG->value],
-            [DataType::DOUBLE->value],
-            [DataType::FLOAT->value],
-            [DataType::STRING->value],
+            [DataType::LONG],
+            [DataType::DOUBLE],
+            [DataType::FLOAT],
+            [DataType::STRING],
             [DataType::STRING],
             ['object', true],
         ];
@@ -31,7 +31,7 @@ class LastAggregatorTest extends TestCase
      * @param string|DataType $type
      * @param bool            $expectException
      */
-    public function testAggregator(string|DataType $type, bool $expectException = false): void
+    public function testAggregator($type, bool $expectException = false): void
     {
         $strVal = is_string($type) ? $type : $type->value;
         if ($expectException) {

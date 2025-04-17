@@ -17,7 +17,7 @@ use Level23\Druid\Exceptions\QueryResponseException;
 
 class MetadataBuilder
 {
-    protected DruidClient $client;
+    protected $client;
 
     public function __construct(DruidClient $client)
     {
@@ -85,11 +85,11 @@ class MetadataBuilder
      * @throws \Exception
      */
     public function timeBoundary(
-        string|DataSourceInterface $dataSource,
-        null|string|TimeBound $bound = TimeBound::BOTH,
+        $dataSource,
+        $bound = TimeBound::BOTH,
         ?Closure $filterBuilder = null,
         ?ContextInterface $context = null
-    ): DateTime|array {
+    ) {
 
         $query = [
             'queryType'  => 'timeBoundary',
@@ -301,8 +301,8 @@ class MetadataBuilder
      */
     protected function getColumnsForInterval(
         string $dataSource,
-        DateTimeInterface|int|string $start,
-        DateTimeInterface|int|string|null $stop = null
+        $start,
+        $stop = null
     ): array {
         $response = $this->client->query($dataSource)
             ->interval($start, $stop)
@@ -343,8 +343,8 @@ class MetadataBuilder
      */
     public function rowCount(
         string $dataSource,
-        DateTimeInterface|int|string $start,
-        DateTimeInterface|int|string|null $stop = null
+        $start,
+        $stop = null
     ): int {
         $response = $this->client->query($dataSource)
             ->interval($start, $stop)
@@ -389,10 +389,12 @@ class MetadataBuilder
         $result = ($shortHand == 'last') ? ($intervals[0] ?? '') : ($intervals[count($intervals) - 1] ?? '');
 
         if (empty($result)) {
-            $this->client->getLogger()?->warning(
-                'Failed to get ' . $shortHand . ' interval! ' .
-                'We got ' . count($rawIntervals) . ' intervals: ' . var_export($intervals, true)
-            );
+            if($this->client->getLogger()) {
+                $this->client->getLogger()->warning(
+                    'Failed to get ' . $shortHand . ' interval! ' .
+                    'We got ' . count($rawIntervals) . ' intervals: ' . var_export($intervals, true)
+                );
+            }
         }
 
         return $result;

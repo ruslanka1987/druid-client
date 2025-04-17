@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Queries;
 
+use Level23\Druid\Responses\QueryResponse;
 use Level23\Druid\Types\Granularity;
 use Level23\Druid\Types\SortingOrder;
 use Level23\Druid\Context\QueryContext;
@@ -14,32 +15,32 @@ use Level23\Druid\SearchFilters\SearchFilterInterface;
 
 class SearchQuery implements QueryInterface
 {
-    protected DataSourceInterface $dataSource;
+    protected $dataSource;
 
-    protected Granularity $granularity;
+    protected $granularity;
 
-    protected IntervalCollection $intervals;
+    protected $intervals;
 
-    protected ?FilterInterface $filter = null;
+    protected $filter = null;
 
-    protected ?int $limit = null;
+    protected $limit = null;
 
     /**
      * The dimensions to run the search over. Excluding this means the search is run over all dimensions.
      *
      * @var array|string[]
      */
-    protected array $dimensions = [];
+    protected $dimensions = [];
 
-    protected SortingOrder $sort = SortingOrder::LEXICOGRAPHIC;
+    protected $sort = SortingOrder::LEXICOGRAPHIC;
 
-    protected ?QueryContext $context = null;
+    protected $context = null;
 
-    protected SearchFilterInterface $searchFilter;
+    protected $searchFilter;
 
     public function __construct(
         DataSourceInterface $dataSource,
-        string|Granularity $granularity,
+        $granularity,
         IntervalCollection $intervals,
         SearchFilterInterface $searchFilter
     ) {
@@ -92,9 +93,9 @@ class SearchQuery implements QueryInterface
      *
      * @param array<string|int,string|int|array<mixed>> $response
      *
-     * @return SearchQueryResponse
+     * @return QueryResponse
      */
-    public function parseResponse(array $response): SearchQueryResponse
+    public function parseResponse(array $response): QueryResponse
     {
         return new SearchQueryResponse($response);
     }
@@ -126,7 +127,7 @@ class SearchQuery implements QueryInterface
     /**
      * @param string|SortingOrder $sort
      */
-    public function setSort(string|SortingOrder $sort): void
+    public function setSort($sort): void
     {
         $this->sort = is_string($sort) ? SortingOrder::from(strtolower($sort)) : $sort;
     }

@@ -8,7 +8,7 @@ abstract class QueryResponse implements ResponseInterface
     /**
      * @var array<mixed>
      */
-    protected array $response;
+    protected $response;
 
     /**
      * @param array<mixed> $response

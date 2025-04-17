@@ -26,19 +26,19 @@ use function json_decode;
 
 class DruidClient
 {
-    protected GuzzleClient $client;
+    protected $client;
 
-    protected ?LoggerInterface $logger = null;
+    protected $logger = null;
 
     /**
      * @var null|array{0:string,1:string}
      */
-    protected ?array $auth = null;
+    protected $auth = null;
 
     /**
      * @var array<string,string|int>
      */
-    protected array $config = [
+    protected $config = [
 
         // Domain + optional port or the druid router. If this is set, it will be used for the broker,
         // coordinator and overlord.
@@ -117,7 +117,7 @@ class DruidClient
      *
      * @return \Level23\Druid\Queries\QueryBuilder
      */
-    public function query(string $dataSource = '', string|Granularity $granularity = Granularity::ALL): QueryBuilder
+    public function query(string $dataSource = '', $granularity = Granularity::ALL): QueryBuilder
     {
         return new QueryBuilder($this, $dataSource, $granularity);
     }
@@ -320,7 +320,7 @@ class DruidClient
      *
      * @return mixed|null
      */
-    public function config(string $key, mixed $default = null): mixed
+    public function config(string $key, $default = null)
     {
         // when the broker, coordinator or overlord url is empty, then use the router url.
         $routerFallback = in_array($key, ['broker_url', 'coordinator_url', 'overlord_url']);
@@ -386,7 +386,10 @@ class DruidClient
      */
     protected function log(string $message, array $context = []): void
     {
-        $this->logger?->debug($message, $context);
+        if(!$this->logger) {
+            return;
+        }
+        $this->logger->debug($message, $context);
     }
 
     /**

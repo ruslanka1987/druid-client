@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Queries;
 
+use Level23\Druid\Responses\QueryResponse;
 use Level23\Druid\Types\Granularity;
 use Level23\Druid\Filters\FilterInterface;
 use Level23\Druid\Context\ContextInterface;
@@ -15,25 +16,25 @@ use Level23\Druid\Collections\PostAggregationCollection;
 
 class TimeSeriesQuery implements QueryInterface
 {
-    protected DataSourceInterface $dataSource;
+    protected $dataSource;
 
-    protected IntervalCollection $intervals;
+    protected $intervals;
 
-    protected Granularity $granularity;
+    protected $granularity;
 
-    protected ?FilterInterface $filter = null;
+    protected $filter = null;
 
-    protected ?VirtualColumnCollection $virtualColumns = null;
+    protected $virtualColumns = null;
 
-    protected ?AggregationCollection $aggregations = null;
+    protected $aggregations = null;
 
-    protected ?PostAggregationCollection $postAggregations = null;
+    protected $postAggregations = null;
 
-    protected ?ContextInterface $context = null;
+    protected $context = null;
 
-    protected bool $descending = false;
+    protected $descending = false;
 
-    protected string $timeOutputName = 'timestamp';
+    protected $timeOutputName = 'timestamp';
 
     /**
      * Not documented (yet), but supported since 0.13.0
@@ -43,7 +44,7 @@ class TimeSeriesQuery implements QueryInterface
      * @see https://github.com/apache/incubator-druid/pull/5931
      * @var int|null
      */
-    protected ?int $limit = null;
+    protected $limit = null;
 
     /**
      * TimeSeriesQuery constructor.
@@ -55,7 +56,7 @@ class TimeSeriesQuery implements QueryInterface
     public function __construct(
         DataSourceInterface $dataSource,
         IntervalCollection $intervals,
-        string|Granularity $granularity = Granularity::ALL
+        $granularity = Granularity::ALL
     ) {
         $this->dataSource  = $dataSource;
         $this->intervals   = $intervals;
@@ -152,9 +153,9 @@ class TimeSeriesQuery implements QueryInterface
      *
      * @param array<string|int,array<mixed>|int|string> $response
      *
-     * @return TimeSeriesQueryResponse
+     * @return QueryResponse
      */
-    public function parseResponse(array $response): TimeSeriesQueryResponse
+    public function parseResponse(array $response): QueryResponse
     {
         return new TimeSeriesQueryResponse($response, $this->timeOutputName);
     }

@@ -29,7 +29,7 @@ class MinAggregatorTest extends TestCase
      * @param string|DataType $type
      * @param bool   $expectException
      */
-    public function testAggregator(string|DataType $type, bool $expectException = false): void
+    public function testAggregator($type, bool $expectException = false): void
     {
         $strType = is_string($type) ? $type : $type->value;
         if ($expectException) {

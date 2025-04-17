@@ -36,31 +36,31 @@ class IndexTaskBuilder extends TaskBuilder
     /**
      * @var array<array<string,string|bool>>
      */
-    protected array $dimensions = [];
+    protected $dimensions = [];
 
-    protected SpatialDimensionCollection $spatialDimensions;
+    protected $spatialDimensions;
 
     /**
      * The data source where we will write to.
      *
      * @var string
      */
-    protected string $dataSource;
+    protected $dataSource;
 
-    protected ?InputSourceInterface $inputSource;
+    protected $inputSource;
 
-    protected bool $rollup = false;
+    protected $rollup = false;
 
     /**
      * Whether this task should be executed parallel.
      *
      * @var bool
      */
-    protected bool $parallel = false;
+    protected $parallel = false;
 
-    protected ?TransformSpec $transformSpec = null;
+    protected $transformSpec = null;
 
-    protected ?TimestampSpec $timestampSpec = null;
+    protected $timestampSpec = null;
 
     /**
      * Here we remember which type of granularity we want.
@@ -68,11 +68,11 @@ class IndexTaskBuilder extends TaskBuilder
      *
      * @var string
      */
-    protected string $granularityType = UniformGranularity::class;
+    protected $granularityType = UniformGranularity::class;
 
-    protected ?InputFormatInterface $inputFormat = null;
+    protected $inputFormat = null;
 
-    protected bool $appendToExisting = false;
+    protected $appendToExisting = false;
 
     /**
      * IndexTaskBuilder constructor.
@@ -100,7 +100,7 @@ class IndexTaskBuilder extends TaskBuilder
      *
      * @return $this
      */
-    public function dimension(string $name, string|DataType $type = DataType::STRING): IndexTaskBuilder
+    public function dimension(string $name, $type = DataType::STRING): IndexTaskBuilder
     {
         $this->dimensions[] = [
             'name' => $name,
@@ -122,8 +122,8 @@ class IndexTaskBuilder extends TaskBuilder
      */
     public function multiValueDimension(
         string $name,
-        string|DataType $type = DataType::STRING,
-        string|MultiValueHandling $multiValueHandling = MultiValueHandling::SORTED_ARRAY,
+        $type = DataType::STRING,
+        $multiValueHandling = MultiValueHandling::SORTED_ARRAY,
         bool $createBitmapIndex = true
     ): IndexTaskBuilder {
         $this->dimensions[] = [
@@ -184,7 +184,7 @@ class IndexTaskBuilder extends TaskBuilder
      *
      * @return \Level23\Druid\Tasks\TaskInterface
      */
-    protected function buildTask(array|TaskContext $context): TaskInterface
+    protected function buildTask($context): TaskInterface
     {
         if (is_array($context)) {
             $context = new TaskContext($context);

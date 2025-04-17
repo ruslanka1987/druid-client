@@ -12,7 +12,7 @@ trait HasInterval
     /**
      * @var \Level23\Druid\Interval\Interval|null
      */
-    protected ?IntervalInterface $interval = null;
+    protected $interval = null;
 
     /**
      * Set the interval, e.g. the date where we want to select data from.
@@ -51,7 +51,7 @@ trait HasInterval
      * @return $this
      * @throws \Exception
      */
-    public function interval(DateTimeInterface|int|string $start, DateTimeInterface|int|string|null $stop = null): self
+    public function interval($start, $stop = null): self
     {
         $this->interval = new Interval($start, $stop);
 

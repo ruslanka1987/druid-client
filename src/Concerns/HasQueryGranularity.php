@@ -10,14 +10,14 @@ trait HasQueryGranularity
     /**
      * @var null|Granularity
      */
-    protected ?Granularity $queryGranularity = null;
+    protected $queryGranularity = null;
 
     /**
      * @param string|Granularity $queryGranularity
      *
      * @return $this
      */
-    public function queryGranularity(string|Granularity $queryGranularity): self
+    public function queryGranularity($queryGranularity): self
     {
         $this->queryGranularity = is_string($queryGranularity) ? Granularity::from(strtolower($queryGranularity)) : $queryGranularity;
 

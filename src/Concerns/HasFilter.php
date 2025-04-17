@@ -36,9 +36,9 @@ use Level23\Druid\Filters\SpatialRectangularFilter;
 
 trait HasFilter
 {
-    protected ?QueryBuilder $query = null;
+    protected $query = null;
 
-    protected ?FilterInterface $filter = null;
+    protected $filter = null;
 
     /**
      * Filter our results where the given dimension matches the value based on the operator.
@@ -60,9 +60,9 @@ trait HasFilter
      * @return $this
      */
     public function where(
-        Closure|string|FilterInterface $filterOrDimensionOrClosure,
-        int|string|float|bool|null $operator = null,
-        array|int|string|float|bool|null $value = null,
+        $filterOrDimensionOrClosure,
+        $operator = null,
+        $value = null,
         string $boolean = 'and'
     ): self {
 
@@ -243,7 +243,7 @@ trait HasFilter
      * @see https://druid.apache.org/docs/latest/querying/filters/#array-contains-element-filter
      *
      */
-    public function whereArrayContains(string $column, int|float|string|null $value, string $boolean = 'and'): self
+    public function whereArrayContains(string $column, $value, string $boolean = 'and'): self
     {
         $filter = new ArrayContainsFilter($column, $value);
 
@@ -259,7 +259,7 @@ trait HasFilter
      *
      * @return $this
      */
-    public function orWhereArrayContains(string $column, int|float|string|null $value): self
+    public function orWhereArrayContains(string $column, $value): self
     {
         return $this->whereArrayContains($column, $value, 'or');
     }
@@ -315,9 +315,9 @@ trait HasFilter
      * @see \Level23\Druid\Concerns\HasFilter::where()
      */
     public function orWhere(
-        string|FilterInterface|Closure $filterOrDimension,
-        string|int|float|bool|null $operator = null,
-        array|int|float|string|bool|null $value = null
+        $filterOrDimension,
+        $operator = null,
+        $value = null
     ): self {
         return $this->where($filterOrDimension, $operator, $value, 'or');
     }
@@ -439,7 +439,7 @@ trait HasFilter
      *
      * @return $this
      */
-    public function whereColumn(Closure|string $dimensionA, Closure|string $dimensionB, string $boolean = 'and'): self
+    public function whereColumn($dimensionA, $dimensionB, string $boolean = 'and'): self
     {
         $filter = new ColumnComparisonFilter(
             $this->columnCompareDimension($dimensionA),
@@ -468,7 +468,7 @@ trait HasFilter
      *
      * @return $this
      */
-    public function orWhereColumn(Closure|string $dimensionA, Closure|string $dimensionB): self
+    public function orWhereColumn($dimensionA, $dimensionB): self
     {
         return $this->whereColumn($dimensionA, $dimensionB, 'or');
     }
@@ -499,8 +499,8 @@ trait HasFilter
      */
     public function whereBetween(
         string $dimension,
-        int|float|string $minValue,
-        int|float|string $maxValue,
+        $minValue,
+        $maxValue,
         ?DataType $valueType = null,
         string $boolean = 'and'
     ): self {
@@ -534,8 +534,8 @@ trait HasFilter
      */
     public function orWhereBetween(
         string $dimension,
-        int|float|string $minValue,
-        int|float|string $maxValue,
+        $minValue,
+        $maxValue,
         ?DataType $valueType = null
     ): self {
         return $this->whereBetween($dimension, $minValue, $maxValue, $valueType, 'or');
@@ -785,7 +785,7 @@ trait HasFilter
      * @return \Level23\Druid\Dimensions\DimensionInterface
      * @throws InvalidArgumentException
      */
-    protected function columnCompareDimension(Closure|string $dimension): DimensionInterface
+    protected function columnCompareDimension($dimension): DimensionInterface
     {
         if ($dimension instanceof Closure) {
             $builder = new DimensionBuilder();
@@ -854,7 +854,7 @@ trait HasFilter
      *
      * @return bool
      */
-    protected function isDruidInterval(mixed $interval): bool
+    protected function isDruidInterval($interval): bool
     {
         if ($interval instanceof IntervalInterface) {
             return true;

@@ -11,7 +11,7 @@ class HdfsInputSource implements InputSourceInterface
      *
      * @var string[]|string
      */
-    protected string|array $paths;
+    protected $paths;
 
     /**
      * HdfsInputSource constructor.
@@ -20,7 +20,7 @@ class HdfsInputSource implements InputSourceInterface
      *                               like * are supported in these paths. Empty files located under one of the given paths
      *                               will be skipped.
      */
-    public function __construct(array|string $paths)
+    public function __construct($paths)
     {
         $this->paths = $paths;
     }

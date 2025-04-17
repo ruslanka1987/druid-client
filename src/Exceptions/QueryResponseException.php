@@ -11,7 +11,7 @@ class QueryResponseException extends Exception
     /**
      * @var array<string,bool|string|int|array<mixed>>
      */
-    protected array $query;
+    protected $query;
 
     /**
      * DruidQueryException constructor.

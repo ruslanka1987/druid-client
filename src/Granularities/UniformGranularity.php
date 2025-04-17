@@ -8,7 +8,7 @@ use Level23\Druid\Collections\IntervalCollection;
 
 class UniformGranularity extends AbstractGranularity implements GranularityInterface
 {
-    protected Granularity $segmentGranularity;
+    protected $segmentGranularity;
 
     /**
      * UniformGranularity constructor.
@@ -19,8 +19,8 @@ class UniformGranularity extends AbstractGranularity implements GranularityInter
      * @param IntervalCollection $intervals
      */
     public function __construct(
-        string|Granularity $segmentGranularity,
-        string|Granularity $queryGranularity,
+        $segmentGranularity,
+        $queryGranularity,
         bool $rollup,
         IntervalCollection $intervals
     ) {

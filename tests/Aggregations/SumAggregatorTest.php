@@ -33,7 +33,7 @@ class SumAggregatorTest extends TestCase
      * @param bool            $expectException
      * @param bool            $exceptValueError
      */
-    public function testAggregator(string|DataType $type, bool $expectException = false, bool $exceptValueError = false): void
+    public function testAggregator($type, bool $expectException = false, bool $exceptValueError = false): void
     {
         $strType = is_string($type) ? strtolower($type) : $type->value;
         if( $exceptValueError) {

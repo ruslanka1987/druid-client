@@ -5,21 +5,21 @@ namespace Level23\Druid\Dimensions;
 
 class LookupDimension implements DimensionInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
-    protected string $outputName;
+    protected $outputName;
 
     /**
      * @var string|array<int|string,string>
      */
-    protected string|array $registeredLookupFunctionOrMap;
+    protected $registeredLookupFunctionOrMap;
 
     /**
      * @var bool|string
      */
-    protected string|bool $keepMissingValue;
+    protected $keepMissingValue;
 
-    protected bool $isOneToOne;
+    protected $isOneToOne;
 
     /**
      * DefaultDimension constructor.
@@ -39,9 +39,9 @@ class LookupDimension implements DimensionInterface
      */
     public function __construct(
         string $dimension,
-        array|string $registeredLookupFunctionOrMap,
+        $registeredLookupFunctionOrMap,
         string $outputName = '',
-        bool|string $keepMissingValue = false,
+        $keepMissingValue = false,
         bool $isOneToOne = false
     ) {
         $this->dimension                     = $dimension;

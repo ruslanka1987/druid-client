@@ -5,7 +5,7 @@ namespace Level23\Druid\DataSources;
 
 class TableDataSource implements DataSourceInterface
 {
-    public string $dataSourceName;
+    public $dataSourceName;
 
     public function __construct(string $dataSourceName)
     {

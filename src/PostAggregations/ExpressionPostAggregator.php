@@ -7,19 +7,19 @@ use Level23\Druid\Types\DataType;
 
 class ExpressionPostAggregator implements PostAggregatorInterface
 {
-    protected string $outputName;
+    protected $outputName;
 
-    protected string $expression;
+    protected $expression;
 
-    protected ?string $ordering;
+    protected $ordering;
 
-    protected DataType|string|null $outputType;
+    protected $outputType;
 
     public function __construct(
         string $outputName,
         string $expression,
         ?string $ordering = null,
-        DataType|string|null $outputType = null
+        $outputType = null
 
     ) {
         $this->outputName = $outputName;

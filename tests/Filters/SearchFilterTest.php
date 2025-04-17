@@ -29,7 +29,7 @@ class SearchFilterTest extends TestCase
      * @param string|string[] $valueOrValues
      * @param bool            $caseSensitive
      */
-    public function testFilter(string $dimension, array|string $valueOrValues, ?bool $caseSensitive): void
+    public function testFilter(string $dimension, $valueOrValues, ?bool $caseSensitive): void
     {
         if ($caseSensitive !== null) {
             $filter = new SearchFilter($dimension, $valueOrValues, $caseSensitive);

@@ -21,7 +21,7 @@ abstract class BaseCollection implements IteratorAggregate, ArrayAccess, Countab
     /**
      * @var array<int, T>
      */
-    protected array $items;
+    protected $items;
 
     /**
      * @return \ArrayIterator<int, T>

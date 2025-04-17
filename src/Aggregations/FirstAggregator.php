@@ -14,7 +14,7 @@ class FirstAggregator extends MethodAggregator
      * @param string          $outputName When not given, we will use the same name as the metric.
      * @param string|DataType $type       The type of field. This can either be "long", "float", "double" or "string"
      */
-    public function __construct(string $metricName, string $outputName = '', string|DataType $type = DataType::LONG)
+    public function __construct(string $metricName, string $outputName = '', $type = DataType::LONG)
     {
         $this->type       = is_string($type) ? DataType::from(strtolower($type)) : $type;
         $this->metricName = $metricName;

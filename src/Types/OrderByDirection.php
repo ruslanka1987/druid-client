@@ -3,17 +3,44 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Types;
 
+use InvalidArgumentException;
+
 /**
- * Enum OrderByDirection
+ * Class OrderByDirection
  *
  * @package Level23\Druid\Types
  */
-enum OrderByDirection: string
+final class OrderByDirection extends Enum
 {
-    case ASC = 'ascending';
-    case DESC = 'descending';
+    public const ASC  = 'ascending';
+    public const DESC = 'descending';
 
-    public static function make(string $value): OrderByDirection
+    /**
+     * @param string $direction
+     *
+     * @return string
+     * @throws InvalidArgumentException
+     */
+    public static function validate(string $direction)
+    {
+        $direction = strtolower($direction);
+        if ($direction == 'asc') {
+            $direction = OrderByDirection::ASC;
+        } elseif ($direction == 'desc') {
+            $direction = OrderByDirection::DESC;
+        }
+
+        if (!OrderByDirection::isValidValue($direction)) {
+            throw new InvalidArgumentException(
+                'Invalid order by direction given: ' . $direction .
+                '. Valid options are: ' . implode(', ', OrderByDirection::values())
+            );
+        }
+
+        return $direction;
+    }
+
+    public static function make(string $value)
     {
         $value = strtolower($value);
         if ($value == 'asc') {

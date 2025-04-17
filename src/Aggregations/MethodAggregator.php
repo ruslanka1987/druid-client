@@ -8,11 +8,11 @@ use Level23\Druid\Types\DataType;
 
 abstract class MethodAggregator implements AggregatorInterface
 {
-    protected DataType $type;
+    protected $type;
 
-    protected string $outputName;
+    protected $outputName;
 
-    protected string $metricName;
+    protected $metricName;
 
     /**
      * constructor.
@@ -22,7 +22,7 @@ abstract class MethodAggregator implements AggregatorInterface
      * @param string|DataType $type                         The type of field. This can either be "long", "float" or
      *                                                      "double"
      */
-    public function __construct(string $metricName, string $outputName = '', string|DataType $type = DataType::LONG)
+    public function __construct(string $metricName, string $outputName = '', $type = DataType::LONG)
     {
         if (is_string($type)) {
             $type = DataType::from(strtolower($type));

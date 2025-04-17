@@ -19,7 +19,7 @@ class MaxAggregatorTest extends TestCase
             [DataType::LONG],
             [DataType::DOUBLE],
             [DataType::FLOAT],
-            [DataType::FLOAT->value],
+            [DataType::FLOAT],
             [DataType::STRING, true],
         ];
     }
@@ -30,7 +30,7 @@ class MaxAggregatorTest extends TestCase
      * @param string|\Level23\Druid\Types\DataType $type
      * @param bool                                 $expectException
      */
-    public function testAggregator(string|DataType $type, bool $expectException = false): void
+    public function testAggregator($type, bool $expectException = false): void
     {
         $strVal = is_string($type) ? $type : $type->value;
         if ($expectException) {

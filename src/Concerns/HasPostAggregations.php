@@ -29,7 +29,7 @@ trait HasPostAggregations
     /**
      * @var \Level23\Druid\PostAggregations\PostAggregatorInterface[]
      */
-    protected array $postAggregations = [];
+    protected $postAggregations = [];
 
     /**
      * Build our input field for the post aggregation.
@@ -117,7 +117,7 @@ trait HasPostAggregations
      *
      * @return $this
      */
-    public function quantile(string $as, Closure|string $fieldOrClosure, float $fraction): self
+    public function quantile(string $as, $fieldOrClosure, float $fraction): self
     {
         $fields = $this->buildFields([$fieldOrClosure]);
         if ($fields->count() != 1 || !$fields[0]) {
@@ -152,7 +152,7 @@ trait HasPostAggregations
      *
      * @return $this
      */
-    public function quantiles(string $as, Closure|string $fieldOrClosure, array $fractions): self
+    public function quantiles(string $as, $fieldOrClosure, array $fractions): self
     {
         $fields = $this->buildFields([$fieldOrClosure]);
         if ($fields->count() != 1 || !$fields[0]) {
@@ -193,7 +193,7 @@ trait HasPostAggregations
      */
     public function histogram(
         string $as,
-        Closure|string $fieldOrClosure,
+        $fieldOrClosure,
         ?array $splitPoints = null,
         ?int $numBins = null
     ): self {
@@ -231,7 +231,7 @@ trait HasPostAggregations
      *
      * @return $this
      */
-    public function rank(string $as, Closure|string $fieldOrClosure, float|int $value): self
+    public function rank(string $as, $fieldOrClosure, $value): self
     {
         $fields = $this->buildFields([$fieldOrClosure]);
         if ($fields->count() != 1 || !$fields[0]) {
@@ -268,7 +268,7 @@ trait HasPostAggregations
      *
      * @return $this
      */
-    public function cdf(string $as, Closure|string $fieldOrClosure, array $splitPoints): self
+    public function cdf(string $as, $fieldOrClosure, array $splitPoints): self
     {
         $fields = $this->buildFields([$fieldOrClosure]);
         if ($fields->count() != 1 || !$fields[0]) {
@@ -301,7 +301,7 @@ trait HasPostAggregations
      *
      * @return $this
      */
-    public function sketchSummary(string $as, Closure|string $fieldOrClosure): self
+    public function sketchSummary(string $as, $fieldOrClosure): self
     {
         $fields = $this->buildFields([$fieldOrClosure]);
         if ($fields->count() != 1 || !$fields[0]) {
@@ -451,7 +451,7 @@ trait HasPostAggregations
      *
      * @return $this
      */
-    public function constant(float|int $numericValue, string $as): self
+    public function constant($numericValue, string $as): self
     {
         $this->postAggregations[] = new ConstantPostAggregator($as, $numericValue);
 
@@ -630,7 +630,7 @@ trait HasPostAggregations
         string $as,
         string $expression,
         ?string $ordering = null,
-        DataType|string|null $outputType = null
+        $outputType = null
     ): self {
         $this->postAggregations[] = new ExpressionPostAggregator(
             $as,

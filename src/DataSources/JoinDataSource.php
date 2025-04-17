@@ -7,15 +7,15 @@ use Level23\Druid\Types\JoinType;
 
 class JoinDataSource implements DataSourceInterface
 {
-    protected DataSourceInterface $left;
+    protected $left;
 
-    protected DataSourceInterface $right;
+    protected $right;
 
-    protected string $rightPrefix;
+    protected $rightPrefix;
 
-    protected string $condition;
+    protected $condition;
 
-    protected JoinType $joinType;
+    protected $joinType;
 
     /**
      * @param \Level23\Druid\DataSources\DataSourceInterface $left
@@ -29,7 +29,7 @@ class JoinDataSource implements DataSourceInterface
         DataSourceInterface $right,
         string $rightPrefix,
         string $condition,
-        string|JoinType $joinType
+        $joinType
     ) {
         $this->left        = $left;
         $this->right       = $right;

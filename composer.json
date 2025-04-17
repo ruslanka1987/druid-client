@@ -17,18 +17,18 @@
   "license": "Apache-2.0",
   "type": "library",
   "require": {
-    "php": "^8.2",
+    "php": "^7.3",
     "ext-json": "*",
     "guzzlehttp/guzzle": "^7.0"
   },
   "require-dev": {
-    "infection/infection": "^0.29",
-    "laravel/framework": "^11.0",
-    "laravel/lumen-framework": "^11.0",
+    "infection/infection": "^0.25",
+    "laravel/framework": "^6.0",
+    "laravel/lumen-framework": "^6.0",
     "mockery/mockery": "^1.2",
     "phpstan/phpstan": "^2.0",
     "phpstan/phpstan-mockery": "^2.0",
-    "phpunit/phpunit": "^11"
+    "phpunit/phpunit": "^9"
   },
   "suggest": {
     "psr/log": "Required for using the log handler"

@@ -28,12 +28,12 @@ use Level23\Druid\Aggregations\DistinctCountAggregator;
 
 trait HasAggregations
 {
-    protected ?QueryBuilder $query = null;
+    protected $query = null;
 
     /**
      * @var array|\Level23\Druid\Aggregations\AggregatorInterface[]
      */
-    protected array $aggregations = [];
+    protected $aggregations = [];
 
     /**
      * @return array|\Level23\Druid\Aggregations\AggregatorInterface[]
@@ -57,7 +57,7 @@ trait HasAggregations
     public function sum(
         string $metric,
         string $as = '',
-        string|DataType $type = DataType::LONG,
+        $type = DataType::LONG,
         ?Closure $filterBuilder = null
     ): self {
         $this->aggregations[] = $this->buildFilteredAggregation(
@@ -236,7 +236,7 @@ trait HasAggregations
      */
     public function cardinality(
         string $as,
-        array|Closure $dimensionsOrDimensionBuilder,
+        $dimensionsOrDimensionBuilder,
         bool $byRow = false,
         bool $round = false
     ): self {
@@ -354,7 +354,7 @@ trait HasAggregations
     public function min(
         string $metric,
         string $as = '',
-        string|DataType $type = DataType::LONG,
+        $type = DataType::LONG,
         ?Closure $filterBuilder = null
     ): self {
         $this->aggregations[] = $this->buildFilteredAggregation(
@@ -424,7 +424,7 @@ trait HasAggregations
     public function max(
         string $metric,
         string $as = '',
-        string|DataType $type = DataType::LONG,
+        $type = DataType::LONG,
         ?Closure $filterBuilder = null
     ): self {
         $this->aggregations[] = $this->buildFilteredAggregation(
@@ -499,7 +499,7 @@ trait HasAggregations
     public function any(
         string $metric,
         string $as = '',
-        string|DataType $type = DataType::LONG,
+        $type = DataType::LONG,
         ?int $maxStringBytes = null,
         ?Closure $filterBuilder = null
     ): self {
@@ -609,7 +609,7 @@ trait HasAggregations
     public function first(
         string $metric,
         string $as = '',
-        string|DataType $type = DataType::LONG,
+        $type = DataType::LONG,
         ?Closure $filterBuilder = null
     ): self {
         $this->aggregations[] = $this->buildFilteredAggregation(
@@ -706,7 +706,7 @@ trait HasAggregations
     public function last(
         string $metric,
         string $as = '',
-        string|DataType $type = DataType::LONG,
+        $type = DataType::LONG,
         ?Closure $filterBuilder = null
     ): self {
         $this->aggregations[] = $this->buildFilteredAggregation(

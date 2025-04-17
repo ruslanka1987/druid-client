@@ -41,7 +41,7 @@ class DruidClientTest extends TestCase
      *
      * @return \Mockery\LegacyMockInterface|\Mockery\MockInterface|\Level23\Druid\DruidClient
      */
-    protected function mockDruidClient(?GuzzleClient $guzzle = null): LegacyMockInterface|MockInterface|DruidClient
+    protected function mockDruidClient(?GuzzleClient $guzzle = null)
     {
         $guzzle = $guzzle ?: new GuzzleClient(['base_uri' => 'https://httpbin.org']);
 
@@ -593,7 +593,7 @@ class DruidClientTest extends TestCase
     public function testExecuteRawRequest(
         string $method,
         callable $responseFunction,
-        bool|string $expectException,
+        $expectException,
         bool $is204 = false
     ): void {
         if ($expectException && is_string($expectException)) {

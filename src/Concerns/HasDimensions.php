@@ -17,7 +17,7 @@ trait HasDimensions
     /**
      * @var array|DimensionInterface[]
      */
-    protected array $dimensions = [];
+    protected $dimensions = [];
 
     /**
      * @return array|DimensionInterface[]
@@ -47,9 +47,9 @@ trait HasDimensions
      * @return self
      */
     public function select(
-        array|ArrayObject|string|DimensionInterface $dimension,
+        $dimension,
         string $as = '',
-        string|DataType $outputType = DataType::STRING
+        $outputType = DataType::STRING
     ): self {
         if (is_string($dimension)) {
             $this->addDimension(new Dimension(
@@ -82,7 +82,7 @@ trait HasDimensions
         string $lookupFunction,
         string $dimension,
         string $as = '',
-        bool|string $keepMissingValue = false
+        $keepMissingValue = false
     ): self {
         $this->addDimension(new LookupDimension(
             $dimension,
@@ -116,7 +116,7 @@ trait HasDimensions
         array $map,
         string $dimension,
         string $as = '',
-        bool|string $keepMissingValue = false,
+        $keepMissingValue = false,
         bool $isOneToOne = false
     ): self {
         $this->addDimension(new LookupDimension(
@@ -149,7 +149,7 @@ trait HasDimensions
         string $dimension,
         array $values,
         string $as = '',
-        string|DataType $outputType = DataType::STRING,
+        $outputType = DataType::STRING,
         bool $isWhitelist = true
     ): self {
         $this->addDimension(new ListFilteredDimension(
@@ -184,7 +184,7 @@ trait HasDimensions
         string $dimension,
         string $regex,
         string $as = '',
-        string|DataType $outputType = DataType::STRING
+        $outputType = DataType::STRING
     ): self {
         $this->addDimension(new RegexFilteredDimension(
             new Dimension(
@@ -215,7 +215,7 @@ trait HasDimensions
         string $dimension,
         string $prefix,
         string $as = '',
-        string|DataType $outputType = DataType::STRING
+        $outputType = DataType::STRING
     ): self {
         $this->addDimension(new PrefixFilteredDimension(
             new Dimension(
@@ -234,7 +234,7 @@ trait HasDimensions
      *
      * @param ArrayObject<int|string,string>|string|DimensionInterface|array<int,string> $dimension
      */
-    protected function addDimension(array|ArrayObject|string|DimensionInterface $dimension): void
+    protected function addDimension($dimension): void
     {
         if ($dimension instanceof DimensionInterface) {
             $this->dimensions[] = $dimension;

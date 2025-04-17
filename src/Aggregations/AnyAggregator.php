@@ -7,7 +7,7 @@ use Level23\Druid\Types\DataType;
 
 class AnyAggregator extends MethodAggregator
 {
-    protected ?int $maxStringBytes;
+    protected $maxStringBytes;
 
     /**
      * constructor.
@@ -23,7 +23,7 @@ class AnyAggregator extends MethodAggregator
     public function __construct(
         string $metricName,
         string $outputName = '',
-        string|DataType $type = DataType::LONG,
+        $type = DataType::LONG,
         ?int $maxStringBytes = null
     ) {
         if (is_string($type)) {

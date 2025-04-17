@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Level23\Druid\Queries;
 
 use Level23\Druid\Context\QueryContext;
+use Level23\Druid\Responses\QueryResponse;
 use Level23\Druid\Types\OrderByDirection;
 use Level23\Druid\Filters\FilterInterface;
 use Level23\Druid\Types\ScanQueryResultFormat;
@@ -20,18 +21,18 @@ use Level23\Druid\Collections\VirtualColumnCollection;
  */
 class ScanQuery implements QueryInterface
 {
-    protected DataSourceInterface $dataSource;
+    protected $dataSource;
 
-    protected IntervalCollection $intervals;
+    protected $intervals;
 
-    protected ScanQueryResultFormat $resultFormat = ScanQueryResultFormat::NORMAL_LIST;
+    protected $resultFormat = ScanQueryResultFormat::NORMAL_LIST;
 
     /**
      * How many rows buffered before return to client. Default is 20480
      *
      * @var int
      */
-    protected int $batchSize;
+    protected $batchSize;
 
     /**
      * Return results consistent with the legacy "scan-query" contrib extension. Defaults to the value set by
@@ -39,7 +40,7 @@ class ScanQuery implements QueryInterface
      *
      * @var bool
      */
-    protected bool $legacy;
+    protected $legacy;
 
     /**
      * The ordering of returned rows based on timestamp. "ascending", "descending" are supported. When not supplied,
@@ -48,34 +49,34 @@ class ScanQuery implements QueryInterface
      *
      * @var OrderByDirection
      */
-    protected OrderByDirection $order;
+    protected $order;
 
     /**
      * How many rows to return. If not specified, all rows will be returned.
      *
      * @var int
      */
-    protected int $limit;
+    protected $limit;
 
     /**
      * Skip this many rows when returning results.
      *
      * @var int
      */
-    protected int $offset;
+    protected $offset;
 
-    protected ?QueryContext $context;
+    protected $context;
 
-    protected ?FilterInterface $filter;
+    protected $filter;
 
     /**
      * A String array of dimensions and metrics to scan. If left empty, all dimensions and metrics are returned.
      *
      * @var array|string[]
      */
-    protected array $columns = [];
+    protected $columns = [];
 
-    protected ?VirtualColumnCollection $virtualColumns;
+    protected $virtualColumns;
 
     public function __construct(DataSourceInterface $dataSource, IntervalCollection $intervals)
     {
@@ -94,7 +95,7 @@ class ScanQuery implements QueryInterface
             'queryType'    => 'scan',
             'dataSource'   => $this->dataSource->toArray(),
             'intervals'    => $this->intervals->toArray(),
-            'resultFormat' => $this->resultFormat->value,
+            'resultFormat' => $this->resultFormat,
             'columns'      => $this->columns,
         ];
 
@@ -130,7 +131,7 @@ class ScanQuery implements QueryInterface
         }
 
         if (isset($this->order)) {
-            $result['order'] = $this->order->value;
+            $result['order'] = $this->order;
         }
 
         return $result;
@@ -143,7 +144,7 @@ class ScanQuery implements QueryInterface
      *
      * @return ScanQueryResponse
      */
-    public function parseResponse(array $response): ScanQueryResponse
+    public function parseResponse(array $response): QueryResponse
     {
         return new ScanQueryResponse($response);
     }
@@ -153,7 +154,7 @@ class ScanQuery implements QueryInterface
      *
      * @param string|ScanQueryResultFormat $resultFormat
      */
-    public function setResultFormat(string|ScanQueryResultFormat $resultFormat): void
+    public function setResultFormat($resultFormat): void
     {
         $this->resultFormat = is_string($resultFormat) ? ScanQueryResultFormat::from(strtolower($resultFormat)) : $resultFormat;
     }
@@ -232,7 +233,7 @@ class ScanQuery implements QueryInterface
      *
      * @param string|OrderByDirection $order
      */
-    public function setOrder(string|OrderByDirection $order): void
+    public function setOrder($order): void
     {
         $this->order = is_string($order) ? OrderByDirection::make($order) : $order;
     }

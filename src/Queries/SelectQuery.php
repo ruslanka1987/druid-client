@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Level23\Druid\Queries;
 
 use InvalidArgumentException;
+use Level23\Druid\Responses\QueryResponse;
 use Level23\Druid\Types\Granularity;
 use Level23\Druid\Context\QueryContext;
 use Level23\Druid\Filters\FilterInterface;
@@ -26,29 +27,29 @@ use Level23\Druid\DataSources\DataSourceInterface;
  */
 class SelectQuery implements QueryInterface
 {
-    protected DataSourceInterface $dataSource;
+    protected $dataSource;
 
-    protected IntervalCollection $intervals;
+    protected $intervals;
 
-    protected bool $descending = false;
+    protected $descending = false;
 
-    protected ?FilterInterface $filter = null;
+    protected $filter = null;
 
-    protected ?DimensionCollection $dimensions = null;
+    protected $dimensions = null;
 
-    protected Granularity $granularity = Granularity::ALL;
+    protected $granularity = Granularity::ALL;
 
     /**
      * @var array|string[]
      */
-    protected array $metrics;
+    protected $metrics;
 
-    protected ?QueryContext $context = null;
+    protected $context = null;
 
-    protected int $threshold;
+    protected $threshold;
 
     /** @var array<string,int>|null */
-    protected ?array $pagingIdentifier = null;
+    protected $pagingIdentifier = null;
 
     /**
      * SelectQuery constructor.
@@ -125,7 +126,7 @@ class SelectQuery implements QueryInterface
      *
      * @return SelectQueryResponse
      */
-    public function parseResponse(array $response): SelectQueryResponse
+    public function parseResponse(array $response): QueryResponse
     {
         return new SelectQueryResponse($response);
     }
@@ -145,7 +146,7 @@ class SelectQuery implements QueryInterface
      *
      * @throws InvalidArgumentException
      */
-    public function setGranularity(string|Granularity $granularity): void
+    public function setGranularity($granularity): void
     {
         $this->granularity = is_string($granularity) ? Granularity::from(strtolower($granularity)) : $granularity;
     }

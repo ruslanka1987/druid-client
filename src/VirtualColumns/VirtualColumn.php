@@ -7,11 +7,11 @@ use Level23\Druid\Types\DataType;
 
 class VirtualColumn implements VirtualColumnInterface
 {
-    protected string $name;
+    protected $name;
 
-    protected string $expression;
+    protected $expression;
 
-    protected DataType $outputType;
+    protected $outputType;
 
     /**
      * VirtualColumn constructor.
@@ -22,7 +22,7 @@ class VirtualColumn implements VirtualColumnInterface
      *
      * @see https://druid.apache.org/docs/latest/misc/math-expr.html
      */
-    public function __construct(string $expression, string $as, string|DataType $outputType = DataType::FLOAT)
+    public function __construct(string $expression, string $as, $outputType = DataType::FLOAT)
     {
         $this->name       = $as;
         $this->expression = $expression;

@@ -27,7 +27,7 @@ use Level23\Druid\Responses\SegmentMetadataQueryResponse;
 
 class MetadataBuilderTest extends TestCase
 {
-    protected QueryBuilder|MockInterface|LegacyMockInterface $client;
+    protected $client;
 
     protected function setUp(): void
     {
@@ -561,10 +561,10 @@ class MetadataBuilderTest extends TestCase
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function testTimeBoundary(
-        DataSourceInterface|string $dataSource,
-        null|string|TimeBound $bound,
+        $dataSource,
+        $bound,
         ?Closure $filterBuilder = null,
-        ?ContextInterface $context = null,
+        ?ContextInterface $context = null
     ): void {
         $metadataBuilder = Mockery::mock(MetadataBuilder::class, [$this->client]);
         $metadataBuilder->makePartial();

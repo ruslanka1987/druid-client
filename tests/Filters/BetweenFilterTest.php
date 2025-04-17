@@ -26,8 +26,8 @@ class BetweenFilterTest extends TestCase
      *           ["john", "doe", "something", true]
      */
     public function testFilter(
-        int|float|string $minValue,
-        int|float|string $maxValue,
+        $minValue,
+        $maxValue,
         ?string $dataType = null,
         bool $expectException = false
     ): void {

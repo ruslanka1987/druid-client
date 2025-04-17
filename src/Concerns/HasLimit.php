@@ -14,12 +14,12 @@ trait HasLimit
     /**
      * @var \Level23\Druid\Limits\Limit|null
      */
-    protected ?Limit $limit = null;
+    protected $limit = null;
 
     /**
      * @var OrderByDirection|null
      */
-    protected ?OrderByDirection $direction = null;
+    protected $direction = null;
 
     /**
      * We can only order by fields if there is a limit specified (....., I know... ).
@@ -28,7 +28,7 @@ trait HasLimit
      *
      * @var int
      */
-    public static int $DEFAULT_MAX_LIMIT = 999999;
+    public static $DEFAULT_MAX_LIMIT = 999999;
 
     /**
      * Limit out result by N records.
@@ -66,8 +66,8 @@ trait HasLimit
      */
     public function orderBy(
         string $dimensionOrMetric,
-        string|OrderByDirection $direction = OrderByDirection::ASC,
-        string|SortingOrder $sortingOrder = SortingOrder::LEXICOGRAPHIC
+        $direction = OrderByDirection::ASC,
+        $sortingOrder = SortingOrder::LEXICOGRAPHIC
     ): self {
         $order = new OrderBy($dimensionOrMetric, $direction, $sortingOrder);
 
@@ -88,7 +88,7 @@ trait HasLimit
      *
      * @return $this
      */
-    public function orderByDirection(string|OrderByDirection $direction = OrderByDirection::DESC): self
+    public function orderByDirection($direction = OrderByDirection::DESC): self
     {
         $this->direction = is_string($direction) ? OrderByDirection::make($direction) : $direction;
 

@@ -36,8 +36,8 @@ class OrderByTest extends TestCase
      */
     public function testOrderBy(
         string $dimension,
-        string|OrderByDirection $direction,
-        string|SortingOrder $sorting,
+        $direction,
+        $sorting,
         bool $expectException = false
     ): void {
         if ($expectException) {
@@ -55,7 +55,7 @@ class OrderByTest extends TestCase
 
         $this->assertEquals([
             'dimension'      => $dimension,
-            'direction'      => $expectedDirection->value,
+            'direction'      => $expectedDirection,
             'dimensionOrder' => (is_string($sorting) ? SortingOrder::from($sorting) : $sorting)->value,
         ], $orderBy->toArray());
     }

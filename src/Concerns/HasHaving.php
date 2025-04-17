@@ -20,7 +20,7 @@ use Level23\Druid\HavingFilters\DimensionSelectorHavingFilter;
 
 trait HasHaving
 {
-    protected ?HavingFilterInterface $having = null;
+    protected $having = null;
 
     /**
      * Build our "having" part of the query.
@@ -35,9 +35,9 @@ trait HasHaving
      * @return $this
      */
     public function having(
-        Closure|string|HavingFilterInterface|FilterInterface $havingOrMetricOrClosure,
-        float|string|null $operator = null,
-        float|string|bool|null $value = null,
+        $havingOrMetricOrClosure,
+        $operator = null,
+        $value = null,
         string $boolean = 'and'
     ): self {
         $having = null;
@@ -109,9 +109,9 @@ trait HasHaving
      * @return $this
      */
     public function orHaving(
-        Closure|HavingFilterInterface|string $havingOrMetricOrClosure,
-        float|string|null $operator = null,
-        float|string|null $value = null
+        $havingOrMetricOrClosure,
+        $operator = null,
+        $value = null
     ): self {
         return $this->having($havingOrMetricOrClosure, $operator, $value, 'or');
     }

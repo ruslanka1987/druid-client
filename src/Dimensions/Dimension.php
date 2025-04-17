@@ -8,11 +8,11 @@ use Level23\Druid\Types\DataType;
 
 class Dimension implements DimensionInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
-    protected string $outputName;
+    protected $outputName;
 
-    protected DataType $outputType;
+    protected $outputType;
 
     /**
      * Dimension constructor.
@@ -24,7 +24,7 @@ class Dimension implements DimensionInterface
     public function __construct(
         string $dimension,
         ?string $outputName = null,
-        string|DataType $outputType = DataType::STRING
+        $outputType = DataType::STRING
     ) {
         $this->dimension  = $dimension;
         $this->outputName = $outputName ?: $dimension;

@@ -8,11 +8,11 @@ use Level23\Druid\Types\OrderByDirection;
 
 class OrderBy implements OrderByInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
-    protected OrderByDirection $direction;
+    protected $direction;
 
-    protected SortingOrder $dimensionOrder;
+    protected $dimensionOrder;
 
     /**
      * OrderBy constructor.
@@ -23,8 +23,8 @@ class OrderBy implements OrderByInterface
      */
     public function __construct(
         string $dimension,
-        string|OrderByDirection $direction = OrderByDirection::ASC,
-        string|SortingOrder $dimensionOrder = SortingOrder::LEXICOGRAPHIC
+        $direction = OrderByDirection::ASC,
+        $dimensionOrder = SortingOrder::LEXICOGRAPHIC
     ) {
         $this->dimension      = $dimension;
         $this->direction      = is_string($direction) ? OrderByDirection::make($direction) : $direction;

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Level23\Druid\Queries;
 
+use Level23\Druid\Responses\QueryResponse;
 use Level23\Druid\Types\Granularity;
 use Level23\Druid\Filters\FilterInterface;
 use Level23\Druid\Context\ContextInterface;
@@ -16,29 +17,29 @@ use Level23\Druid\Collections\PostAggregationCollection;
 
 class TopNQuery implements QueryInterface
 {
-    protected DataSourceInterface $dataSource;
+    protected $dataSource;
 
-    protected IntervalCollection $intervals;
+    protected $intervals;
 
-    protected Granularity $granularity;
+    protected $granularity;
 
-    protected DimensionInterface $dimension;
+    protected $dimension;
 
-    protected ?VirtualColumnCollection $virtualColumns = null;
+    protected $virtualColumns = null;
 
-    protected int $threshold;
+    protected $threshold;
 
-    protected string $metric;
+    protected $metric;
 
-    protected ?FilterInterface $filter = null;
+    protected $filter = null;
 
-    protected ?AggregationCollection $aggregations = null;
+    protected $aggregations = null;
 
-    protected ?PostAggregationCollection $postAggregations = null;
+    protected $postAggregations = null;
 
-    protected ?ContextInterface $context = null;
+    protected $context = null;
 
-    protected bool $descending = true;
+    protected $descending = true;
 
     /**
      * TopNQuery constructor.
@@ -56,7 +57,7 @@ class TopNQuery implements QueryInterface
         DimensionInterface $dimension,
         int $threshold,
         string $metric,
-        string|Granularity $granularity = Granularity::ALL
+        $granularity = Granularity::ALL
     ) {
         $this->dataSource  = $dataSource;
         $this->intervals   = $intervals;
@@ -158,9 +159,9 @@ class TopNQuery implements QueryInterface
      *
      * @param array<string|int,array<mixed>|int|string> $response
      *
-     * @return TopNQueryResponse
+     * @return QueryResponse
      */
-    public function parseResponse(array $response): TopNQueryResponse
+    public function parseResponse(array $response): QueryResponse
     {
         return new TopNQueryResponse($response);
     }

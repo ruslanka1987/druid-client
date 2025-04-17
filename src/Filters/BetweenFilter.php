@@ -20,13 +20,13 @@ use Level23\Druid\Types\DataType;
  */
 class BetweenFilter implements FilterInterface
 {
-    protected string $column;
+    protected $column;
 
-    protected int|string|float $minValue;
+    protected $minValue;
 
-    protected int|string|float $maxValue;
+    protected $maxValue;
 
-    protected DataType $valueType;
+    protected $valueType;
 
     /**
      * BetweenFilter constructor.
@@ -41,8 +41,8 @@ class BetweenFilter implements FilterInterface
      */
     public function __construct(
         string $column,
-        int|float|string $minValue,
-        int|float|string $maxValue,
+        $minValue,
+        $maxValue,
         ?DataType $valueType = null
     ) {
         if (is_null($valueType)) {
@@ -72,7 +72,7 @@ class BetweenFilter implements FilterInterface
         return [
             'type'           => 'range',
             'column'         => $this->column,
-            'matchValueType' => $this->valueType->value,
+            'matchValueType' => $this->valueType,
             'lower'          => $this->minValue,
             'lowerOpen'      => false, // >=
             'upper'          => $this->maxValue,

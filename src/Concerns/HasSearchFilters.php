@@ -13,12 +13,12 @@ trait HasSearchFilters
     /**
      * @var \Level23\Druid\SearchFilters\SearchFilterInterface|null
      */
-    protected ?SearchFilterInterface $searchFilter = null;
+    protected $searchFilter = null;
 
     /**
      * @var string[]
      */
-    protected array $searchDimensions = [];
+    protected $searchDimensions = [];
 
     /**
      * Supply the dimensions where we want to search in using a Search Query.

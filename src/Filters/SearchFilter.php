@@ -12,14 +12,14 @@ namespace Level23\Druid\Filters;
  */
 class SearchFilter implements FilterInterface
 {
-    protected string $dimension;
+    protected $dimension;
 
     /**
      * @var string|string[]
      */
-    protected string|array $value;
+    protected $value;
 
-    protected bool $caseSensitive;
+    protected $caseSensitive;
 
     /**
      * SearchFilter constructor.
@@ -33,7 +33,7 @@ class SearchFilter implements FilterInterface
      */
     public function __construct(
         string $dimension,
-        array|string $valueOrValues,
+        $valueOrValues,
         bool $caseSensitive = false
     ) {
         $this->dimension     = $dimension;

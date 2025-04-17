@@ -18,9 +18,9 @@ use Level23\Druid\DataSources\DataSourceInterface;
 
 trait HasDataSource
 {
-    protected DruidClient $client;
+    protected $client;
 
-    protected DataSourceInterface $dataSource;
+    protected $dataSource;
 
     /**
      * Alias method from "dataSource"
@@ -29,7 +29,7 @@ trait HasDataSource
      *
      * @return self
      */
-    public function from(DataSourceInterface|string $dataSource): self
+    public function from($dataSource): self
     {
         return $this->dataSource($dataSource);
     }
@@ -41,7 +41,7 @@ trait HasDataSource
      *
      * @return self
      */
-    public function dataSource(DataSourceInterface|string $dataSource): self
+    public function dataSource($dataSource): self
     {
         if (is_string($dataSource)) {
             $this->dataSource = new TableDataSource($dataSource);
@@ -60,7 +60,7 @@ trait HasDataSource
      *
      * @return self
      */
-    public function join(DataSourceInterface|Closure|string $dataSourceOrClosure, string $as, string $condition, string|JoinType $joinType = JoinType::INNER): self
+    public function join($dataSourceOrClosure, string $as, string $condition, $joinType = JoinType::INNER): self
     {
         if ($this->dataSource instanceof TableDataSource && $this->dataSource->dataSourceName == '') {
             throw new InvalidArgumentException('You first have to define your "from" dataSource before you can join!');
@@ -98,7 +98,7 @@ trait HasDataSource
         string $lookupName,
         string $as,
         string $condition,
-        string|JoinType $joinType = JoinType::INNER
+        $joinType = JoinType::INNER
     ): self {
         $lookupDataSource = new LookupDataSource($lookupName);
 
@@ -112,7 +112,7 @@ trait HasDataSource
      *
      * @return self
      */
-    public function leftJoin(DataSourceInterface|Closure|string $dataSourceOrClosure, string $as, string $condition): self
+    public function leftJoin($dataSourceOrClosure, string $as, string $condition): self
     {
         return $this->join($dataSourceOrClosure, $as, $condition, JoinType::LEFT);
     }
@@ -124,7 +124,7 @@ trait HasDataSource
      *
      * @return self
      */
-    public function innerJoin(DataSourceInterface|Closure|string $dataSourceOrClosure, string $as, string $condition): self
+    public function innerJoin($dataSourceOrClosure, string $as, string $condition): self
     {
         return $this->join($dataSourceOrClosure, $as, $condition);
     }
@@ -160,7 +160,7 @@ trait HasDataSource
      * @return $this
      * @see https://druid.apache.org/docs/latest/querying/datasource.html#union
      */
-    public function union(array|string $dataSources, bool $append = true): self
+    public function union($dataSources, bool $append = true): self
     {
         $dataSources = (array)$dataSources;
 
@@ -183,7 +183,7 @@ trait HasDataSource
      * @return DataSourceInterface
      * @throws InvalidArgumentException
      */
-    protected function getDataSource(DataSourceInterface|Closure|string $dataSourceOrClosure): DataSourceInterface
+    protected function getDataSource($dataSourceOrClosure): DataSourceInterface
     {
         if ($dataSourceOrClosure instanceof DataSourceInterface) {
             return $dataSourceOrClosure;
