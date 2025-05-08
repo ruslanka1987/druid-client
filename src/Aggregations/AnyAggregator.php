@@ -44,7 +44,7 @@ class AnyAggregator extends MethodAggregator
     public function toArray(): array
     {
         $response = [
-            'type'      => $this->type->value . ucfirst($this->getMethod()),
+            'type'      => is_object($this->type) ? $this->type->value : $this->type . ucfirst($this->getMethod()),
             'name'      => $this->outputName,
             'fieldName' => $this->metricName,
         ];
