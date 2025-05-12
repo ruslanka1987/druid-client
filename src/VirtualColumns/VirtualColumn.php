@@ -40,7 +40,7 @@ class VirtualColumn implements VirtualColumnInterface
             'type'       => 'expression',
             'name'       => $this->name,
             'expression' => $this->expression,
-            'outputType' => $this->outputType->value,
+            'outputType' => is_object($this->outputType) ? $this->outputType->value : $this->outputType,
         ];
     }
 }
