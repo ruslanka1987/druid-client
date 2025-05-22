@@ -43,9 +43,9 @@ final class OrderByDirection extends Enum
     public static function make(string $value)
     {
         $value = strtolower($value);
-        if ($value == 'asc') {
+        if (in_array($value, ['asc', 'ascending'])) {
             return self::ASC;
-        } elseif ($value == 'desc') {
+        } elseif (in_array($value, ['desc', 'descending'])) {
             return self::DESC;
         }
 
