@@ -40,8 +40,8 @@ class OrderBy implements OrderByInterface
     {
         return [
             'dimension'      => $this->dimension,
-            'direction'      => $this->direction->value,
-            'dimensionOrder' => $this->dimensionOrder->value,
+            'direction'      => is_object($this->direction) ? $this->direction->value : $this->direction,
+            'dimensionOrder' => is_object($this->dimensionOrder) ? $this->dimensionOrder->value : $this->dimensionOrder,
         ];
     }
 
