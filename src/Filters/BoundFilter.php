@@ -61,7 +61,7 @@ class BoundFilter implements FilterInterface
         $result = [
             'type'      => 'bound',
             'dimension' => $this->dimension,
-            'ordering'  => $this->ordering->value,
+            'ordering'  => is_object($this->ordering) ? $this->ordering->value : $this->ordering,
         ];
 
         switch ($this->operator) {

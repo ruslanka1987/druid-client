@@ -75,7 +75,7 @@ class TimeSeriesQuery implements QueryInterface
             'dataSource'  => $this->dataSource->toArray(),
             'descending'  => $this->descending,
             'intervals'   => $this->intervals->toArray(),
-            'granularity' => $this->granularity->value,
+            'granularity' => is_object($this->granularity) ? $this->granularity->value : $this->granularity,
         ];
 
         if ($this->filter) {

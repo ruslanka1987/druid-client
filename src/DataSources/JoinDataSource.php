@@ -51,7 +51,7 @@ class JoinDataSource implements DataSourceInterface
             'right'       => $this->right->toArray(),
             'rightPrefix' => $this->rightPrefix,
             'condition'   => $this->condition,
-            'joinType'    => $this->joinType->value,
+            'joinType'    => is_object($this->joinType) ? $this->joinType->value : $this->joinType,
         ];
     }
 }

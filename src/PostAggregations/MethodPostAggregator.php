@@ -43,7 +43,7 @@ abstract class MethodPostAggregator implements PostAggregatorInterface
     public function toArray(): array
     {
         return [
-            'type'   => $this->type->value . ucfirst($this->getMethod()),
+            'type'   => (is_object($this->type) ? $this->type->value : $this->type) . ucfirst($this->getMethod()),
             'name'   => $this->outputName,
             'fields' => $this->fields->toArray(),
         ];

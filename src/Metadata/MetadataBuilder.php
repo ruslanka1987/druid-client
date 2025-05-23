@@ -101,7 +101,7 @@ class MetadataBuilder
         }
 
         if (!empty($bound) && $bound != TimeBound::BOTH) {
-            $query['bound'] = $bound->value;
+            $query['bound'] = is_object($bound) ? $bound->value : $bound;
         }
 
         if ($filterBuilder) {

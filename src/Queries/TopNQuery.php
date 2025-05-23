@@ -90,7 +90,7 @@ class TopNQuery implements QueryInterface
             'queryType'   => 'topN',
             'dataSource'  => $this->dataSource->toArray(),
             'intervals'   => $this->intervals->toArray(),
-            'granularity' => $this->granularity->value,
+            'granularity' => is_object($this->granularity) ? $this->granularity->value : $this->granularity,
             'dimension'   => $this->dimension->toArray(),
             'threshold'   => $this->threshold,
             'metric'      => $metricSpec,

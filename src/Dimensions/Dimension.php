@@ -37,7 +37,7 @@ class Dimension implements DimensionInterface
 
         if (!in_array($outputType, [DataType::STRING, DataType::LONG, DataType::FLOAT])) {
             throw new InvalidArgumentException(
-                'Incorrect type given: ' . $outputType->value . '. This can either be "long", "float" or "string"'
+                'Incorrect type given: ' . (is_object($outputType) ? $outputType->value : $outputType) . '. This can either be "long", "float" or "string"'
             );
         }
 

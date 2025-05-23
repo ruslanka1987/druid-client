@@ -104,7 +104,7 @@ class IndexTaskBuilder extends TaskBuilder
     {
         $this->dimensions[] = [
             'name' => $name,
-            'type' => (is_string($type) ? DataType::from(strtolower($type)) : $type)->value,
+            'type' => (is_string($type) ? DataType::from(strtolower($type)) : $type)
         ];
 
         return $this;
@@ -128,8 +128,8 @@ class IndexTaskBuilder extends TaskBuilder
     ): IndexTaskBuilder {
         $this->dimensions[] = [
             'name'               => $name,
-            'type'               => (is_string($type) ? DataType::from(strtolower($type)) : $type)->value,
-            'multiValueHandling' => (is_string($multiValueHandling) ? MultiValueHandling::from(strtoupper($multiValueHandling)) : $multiValueHandling)->value,
+            'type'               => (is_string($type) ? DataType::from(strtolower($type)) : $type),
+            'multiValueHandling' => (is_string($multiValueHandling) ? MultiValueHandling::from(strtoupper($multiValueHandling)) : $multiValueHandling),
             'createBitmapIndex'  => $createBitmapIndex,
         ];
 

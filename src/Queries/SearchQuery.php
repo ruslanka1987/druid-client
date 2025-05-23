@@ -60,9 +60,9 @@ class SearchQuery implements QueryInterface
         $result = [
             'queryType'   => 'search',
             'dataSource'  => $this->dataSource->toArray(),
-            'granularity' => $this->granularity->value,
+            'granularity' => is_object($this->granularity) ? $this->granularity->value : $this->granularity,
             'intervals'   => $this->intervals->toArray(),
-            'sort'        => ['type' => $this->sort->value],
+            'sort'        => ['type' => is_object($this->sort) ? $this->sort->value : $this->sort],
             'query'       => $this->searchFilter->toArray(),
         ];
 

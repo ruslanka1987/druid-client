@@ -38,8 +38,8 @@ class UniformGranularity extends AbstractGranularity implements GranularityInter
     {
         return [
             'type'               => 'uniform',
-            'segmentGranularity' => $this->segmentGranularity->value,
-            'queryGranularity'   => $this->queryGranularity->value,
+            'segmentGranularity' => is_object($this->segmentGranularity) ? $this->segmentGranularity->value : $this->segmentGranularity,
+            'queryGranularity'   => is_object($this->queryGranularity) ? $this->queryGranularity->value : $this->queryGranularity,
             'rollup'             => $this->rollup,
             'intervals'          => $this->intervals->toArray(),
         ];

@@ -98,7 +98,7 @@ class SelectQuery implements QueryInterface
             'descending'  => $this->descending,
             'dimensions'  => $this->dimensions ? $this->dimensions->toArray() : [],
             'metrics'     => $this->metrics,
-            'granularity' => $this->granularity->value,
+            'granularity' => is_object($this->granularity) ? $this->granularity->value : $this->granularity,
             'pagingSpec'  => [
                 'pagingIdentifiers' => $this->pagingIdentifier,
                 'threshold'         => $this->threshold,

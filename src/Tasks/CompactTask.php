@@ -95,7 +95,7 @@ class CompactTask implements TaskInterface
         }
 
         if ($this->segmentGranularity) {
-            $result['segmentGranularity'] = $this->segmentGranularity->value;
+            $result['segmentGranularity'] = is_object($this->segmentGranularity) ? $this->segmentGranularity->value : $this->segmentGranularity;
         }
 
         if ($this->tuningConfig instanceof TuningConfig) {

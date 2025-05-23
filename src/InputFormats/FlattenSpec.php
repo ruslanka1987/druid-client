@@ -44,7 +44,7 @@ class FlattenSpec
             throw new InvalidArgumentException('For type JQ or PATH, you need to specify the expression!');
         }
         $field = [
-            'type' => $type->value,
+            'type' => is_object($type) ? $type->value : $type,
             'name' => $name,
         ];
 

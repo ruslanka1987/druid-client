@@ -58,7 +58,7 @@ class ArithmeticPostAggregator implements PostAggregatorInterface
         return [
             'type'     => 'arithmetic',
             'name'     => $this->outputName,
-            'fn'       => $this->function->value,
+            'fn'       => is_object($this->function) ? $this->function->value : $this->function,
             'fields'   => $this->fields->toArray(),
             'ordering' => $this->floatingPointOrdering ? null : 'numericFirst',
         ];
